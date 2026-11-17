@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "replicate": {
+      "command": "npx",
+      "args": ["-y", "replicate-mcp"],
+      "env": { "REPLICATE_API_TOKEN": "${REPLICATE_API_TOKEN}" }
+    },
+    "apify": {
+      "type": "http",
+      "url": "https://mcp.apify.com",
+      "headers": { "Authorization": "Bearer ${APIFY_TOKEN}" }
+    },
+    "stripe": {
+      "type": "http",
+      "url": "https://mcp.stripe.com"
+    },
+    "notion": {
+      "type": "http",
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "canva": {
+      "type": "http",
+      "url": "https://mcp.canva.com/mcp"
+    }
+  }
+}

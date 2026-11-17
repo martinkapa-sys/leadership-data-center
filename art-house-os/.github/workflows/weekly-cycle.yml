@@ -1,0 +1,33 @@
+# Runs the weekly cycle with Claude Code. Takes effect only when this folder is the repository root.
+# Requires secret ANTHROPIC_API_KEY plus the connector keys from .env.example.
+name: weekly-cycle
+on:
+  schedule:
+    - cron: "10 6 * * 1"   # Monday research
+    - cron: "30 14 * * 5"  # Friday report
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Use the ops-chief agent. Today is ${{ github.event.schedule == '30 14 * * 5' && 'Friday: run the weekly growth review' || 'Monday: run the research and ideation cycle' }}.
+            Write the approval digest to data/approvals.md and commit research and reports.
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+      - name: Commit catalog, research and reports
+        run: |
+          git config user.name "art-house-bot"
+          git config user.email "art-house-bot@users.noreply.github.com"
+          git add data designs/*/*.md || true
+          git diff --cached --quiet || git commit -m "Automated cycle $(date -u +%F)" && git push

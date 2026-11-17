@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "WebSearch",
+      "WebFetch",
+      "Bash(python3 scripts/catalog.py:*)",
+      "Bash(python3 scripts/print_prep.py:*)",
+      "Bash(python3 scripts/print_qa.py:*)",
+      "Bash(python3 scripts/mockup.py:*)",
+      "Bash(python3 scripts/ab_test.py:*)",
+      "Write(designs/**)",
+      "Write(data/research/**)",
+      "Write(data/approvals.md)"
+    ],
+    "ask": [
+      "Bash(python3 scripts/catalog.py approve:*)",
+      "mcp__stripe",
+      "mcp__shopify",
+      "mcp__etsy",
+      "mcp__klaviyo",
+      "mcp__meta",
+      "mcp__pinterest",
+      "mcp__buffer"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/require_approval.py\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__.*",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/audit_log.py\"" }
+        ]
+      }
+    ]
+  }
+}
