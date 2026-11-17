@@ -153,7 +153,10 @@
   .vignette { position: absolute; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(10,3,14,.55)); }
   #dust { position: absolute; inset: 0; z-index: 8; pointer-events: none; width: 100%; height: 100%; }
 
-  .actor-wrap { position: absolute; left: 50%; bottom: 9%; z-index: 10; transform: translateX(-50%); width: min(58%, 340px, 36vh); aspect-ratio: 1; }
+  .actor-wrap { position: absolute; left: 50%; bottom: 9%; z-index: 10; transform: translateX(-50%); width: calc(min(58%, 340px, 36vh) * var(--s, 1)); aspect-ratio: 1; transition: left .6s var(--ease); }
+  .proscenium.duo .actor-wrap.main { left: 63%; width: calc(min(46%, 290px, 31vh) * var(--s, 1)); }
+  .actor-wrap.side { left: 25%; z-index: 9; width: min(34%, 210px, 23vh); }
+  .actor-wrap.side .actor { filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)) brightness(.97); }
   .actor-shadow { position: absolute; left: 12%; right: 12%; bottom: -2%; height: 12%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.45), transparent); }
   .actor { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; transform-origin: 50% 100%; filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
   .actor.enter { animation: enter .9s var(--spring) both; }
@@ -170,7 +173,7 @@
   @keyframes exit { to { transform: translateY(40%) scale(.5); opacity: 0; } }
 
   .bubble {
-    position: absolute; z-index: 12; left: 50%; bottom: calc(9% + min(58%, 340px, 36vh) * .98);
+    position: absolute; z-index: 12; left: 50%; bottom: 96%;
     transform: translateX(-50%) scale(.2); opacity: 0; transform-origin: 50% 120%;
     padding: 10px 22px 12px; border-radius: 24px; white-space: nowrap;
     font-family: var(--display); font-weight: 800; font-size: clamp(28px, 7vw, 40px); color: #2a1233; letter-spacing: -.01em;
@@ -226,6 +229,8 @@
   .caption .replay { position: absolute; right: 10px; top: 10px; width: 34px; height: 34px; }
   .caption .replay svg { width: 16px; height: 16px; }
   .caption .say, .caption .ask { padding-right: 34px; }
+  .caption .dlg { font-style: italic; color: #ffe2b0; }
+  .caption .ask .dlg { color: inherit; font-style: normal; }
 
   .cta-row { position: relative; z-index: 20; display: flex; justify-content: center; padding: 14px 16px calc(env(safe-area-inset-bottom) + 18px); min-height: 92px; }
   .cta {
@@ -317,8 +322,8 @@
       <div class="beam"></div>
       <div class="reps" id="reps"></div>
       <div id="targets"></div>
-      <div class="actor-wrap" id="actorWrap"><div class="actor-shadow"></div><img class="actor" id="actor" alt=""></div>
-      <div class="bubble" id="bubble"></div>
+      <div class="actor-wrap side" id="sideWrap"><div class="actor-shadow"></div><img class="actor" id="side" alt=""></div>
+      <div class="actor-wrap main" id="actorWrap"><div class="actor-shadow"></div><img class="actor" id="actor" alt=""><div class="bubble" id="bubble"></div></div>
       <canvas id="dust"></canvas>
       <div class="vignette"></div>
       <div class="footlights"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -386,112 +391,15 @@
   </div>
 </section>
 
+<script src="stories.js"></script>
+<script src="audio/manifest.js" onerror="window.AUDIO={}"></script>
 <script>
 /* =========================================================
    ART
    ========================================================= */
 const art = key => `art/${key}.png`;
 
-/* =========================================================
-   STORIES
-   Scene types:
-     tell   – narration only
-     sound  – imitate the character's sound `reps` times
-     tap    – mouth/tongue game: do the move, then tap a target
-     blow   – breathing game: blow (or tap) to clear targets
-     finale – curtain call with the whole cast
-   `exit` says how a target leaves: feed (flies to the actor),
-   float (rises away), drift (blows sideways), melt (shrinks).
-   ========================================================= */
-const STORIES = [
-  {
-    id: 'farm', title: 'The Farm Show', cover: 'cow', side: ['ewe', 'chick'], sounds: 'Moo · Baa · Woof · Pop',
-    bg: 'linear-gradient(135deg, #48c774 0%, #1fa37a 55%, #0f7a6b 100%)',
-    scenes: [
-      { type:'tell', bg:'farm', actor:'farmer',
-        say:'Tonight is the big Farm Show! Every animal will sing on the stage.',
-        ask:'But first, they need to practise. Let’s help them!' },
-      { type:'sound', bg:'farm', actor:'cow', sound:'Mooo!', model:'Moooo', practises:'M',
-        say:'Here comes Daisy the cow.', ask:'Sing like a cow: Mooo!',
-        done:'Beautiful! Daisy is ready for the show.' },
-      { type:'sound', bg:'meadow', actor:'ewe', sound:'Baa!', model:'Baa, baa', practises:'B',
-        say:'The little lamb is very shy.', ask:'Help her sing: Baa, baa!',
-        done:'Now the lamb feels brave!' },
-      { type:'tap', bg:'farm', actor:'cat', target:'milk', count:4, exit:'feed', practises:'lip licking',
-        say:'Kitten is thirsty and has milk on her whiskers.', ask:'Lick your lips all around like a kitten. Then tap a milk glass!',
-        done:'Mmm, all clean! Kitten is ready.' },
-      { type:'sound', bg:'farm', actor:'dog', sound:'Woof!', model:'Woof, woof', practises:'W',
-        say:'Rex the dog wants to sing too.', ask:'Bark like a dog: Woof, woof!',
-        done:'What a loud woof! Rex wags his tail.' },
-      { type:'sound', bg:'pond', actor:'fish', sound:'Pop!', model:'Pop, pop', practises:'P',
-        say:'A goldfish is blowing bubbles in the pond.', ask:'Make fish lips and pop: Pop, pop!',
-        done:'Pop, pop! Shiny bubbles everywhere.' },
-      { type:'blow', bg:'fair', actor:'pig', target:'balloon', count:3, exit:'float', practises:'breathing',
-        say:'Piggy has balloons for the show.', ask:'Take a big breath and blow the balloons up into the sky!',
-        done:'Whoosh! The sky is full of balloons.' },
-      { type:'finale', bg:'fair', prop:'popper',
-        say:'The show begins! Moo, baa, woof, pop! Everyone is clapping for you.', ask:'Take a bow!' },
-    ]
-  },
-  {
-    id: 'crown', title: 'The Lost Crown', cover: 'princess', side: ['crown', 'owl'], sounds: 'Sss · Zzz · Shh · Cheep',
-    bg: 'linear-gradient(135deg, #ff8fb1 0%, #e0446a 55%, #9c2a6b 100%)',
-    scenes: [
-      { type:'tell', bg:'castle', actor:'princess',
-        say:'Once upon a time, Princess Rosie lived in a pink castle. One windy morning, her golden crown flew away!',
-        ask:'Let’s help her find it.' },
-      { type:'blow', bg:'forest', actor:'princess', target:'cloud', count:3, exit:'drift', practises:'breathing',
-        say:'The princess walks into the Whispering Forest. But it is so foggy!', ask:'Take a big breath and blow the fog away!',
-        done:'Whoosh! Now we can see the path.' },
-      { type:'sound', bg:'forest', actor:'snake', sound:'Sssss!', model:'Sssssss', fric:'s', practises:'S',
-        say:'A green snake is lying on the path.', ask:'Hiss like the snake to say hello: Sssss!',
-        done:'The snake hisses back and points with its tail. That way!' },
-      { type:'sound', bg:'meadow', actor:'honeybee', sound:'Zzzzz!', model:'Bzzzzzz', fric:'z', practises:'Z',
-        say:'In the meadow, busy bees fly from flower to flower.', ask:'Buzz like a bee: Zzzzz!',
-        done:'The bees buzz: we saw something shiny near the pond!' },
-      { type:'tap', bg:'pond', actor:'frog', target:'fly', count:5, exit:'feed', practises:'tongue out',
-        say:'At the pond sits a hungry frog.', ask:'Stick your tongue out like the frog. Then tap a fly!',
-        done:'Yum! The happy frog hops towards the old tree.' },
-      { type:'sound', bg:'night', actor:'owl', sound:'Shhhh!', model:'Shhhhhh', fric:'sh', practises:'SH',
-        say:'In the old tree, baby owls are sleeping.', ask:'Let’s be very quiet. Say: Shhhh!',
-        done:'Mother Owl whispers: thank you! The crown is in the chick’s nest.' },
-      { type:'sound', bg:'farm', actor:'chick', sound:'Cheep!', model:'Cheep, cheep', practises:'CH',
-        say:'A little chick is sitting on something golden.', ask:'Talk to the chick: Cheep, cheep!',
-        done:'The chick hops off. Look! It is the crown!' },
-      { type:'finale', bg:'castle', prop:'crown',
-        say:'Princess Rosie wears her golden crown again. You found it! You are a true hero.', ask:'Take a bow!' },
-    ]
-  },
-  {
-    id: 'dragon', title: 'The Sleepy Dragon', cover: 'dragon', side: ['prince', 'lion'], sounds: 'Rrr · La · Quack · Gobble',
-    bg: 'linear-gradient(135deg, #7aa7ff 0%, #5865f2 50%, #3b2a8f 100%)',
-    scenes: [
-      { type:'tell', bg:'castle', actor:'prince',
-        say:'Prince Leo wants to visit his best friend, the dragon. But the dragon lives in a faraway cave.',
-        ask:'Let’s ride there together!' },
-      { type:'tap', bg:'hills', actor:'horse', target:'carrot', count:5, exit:'feed', practises:'tongue clicks',
-        say:'Here is Pony, ready to gallop.', ask:'Click your tongue like hooves: clip, clop! Then give Pony a carrot.',
-        done:'Off we go, galloping fast!' },
-      { type:'sound', bg:'hills', actor:'lion', sound:'Rrroar!', model:'Rrrrroar', practises:'R',
-        say:'A big lion stands at the bridge.', ask:'Only brave roarers may pass. Roar: Rrrrr!',
-        done:'What a roar! The lion bows and lets us cross.' },
-      { type:'sound', bg:'meadow', actor:'bird', sound:'La-la-la!', model:'La, la, la', practises:'L',
-        say:'A little bird is singing on a branch.', ask:'Sing along with her: La, la, la!',
-        done:'Lovely singing! The bird flies ahead to show the way.' },
-      { type:'sound', bg:'pond', actor:'duck', sound:'Quack!', model:'Quack, quack', practises:'K',
-        say:'Mother Duck is swimming in the river.', ask:'Ask her for the way: Quack, quack!',
-        done:'Mother Duck quacks: the cave is behind the hill!' },
-      { type:'sound', bg:'hills', actor:'turkey', sound:'Gobble!', model:'Gobble, gobble', practises:'G',
-        say:'A turkey is guarding the hill path.', ask:'Say hello in turkey talk: Gobble, gobble!',
-        done:'The turkey giggles and steps aside.' },
-      { type:'blow', bg:'cave', actor:'dragon', target:'ice', count:3, exit:'melt', practises:'breathing',
-        say:'Here is the dragon! But the cave is so cold, he can’t wake up.', ask:'Blow warm air to melt the ice!',
-        done:'The dragon opens his eyes and smiles!' },
-      { type:'finale', bg:'cave', prop:'heart',
-        say:'The dragon gives Prince Leo a big warm hug. Best friends forever!', ask:'Take a bow!' },
-    ]
-  },
-];
+const STORIES = window.STORIES;   // the fairy tales live in stories.js
 
 /* =========================================================
    SCENERY
@@ -510,14 +418,14 @@ const BACKDROPS = {
             props:[['tree',10,52,26,'far'],['herb',86,66,18,'near',1],['lotus',22,76,13,'near'],['lotus',76,78,11,'near']] },
   night:  { sky:['#0d1340','#33367a'], glow:['moon', 80, 16, 14], hills:['#2d4a5c','#21394a','#172b38'], stars:true,
             props:[['pine',14,58,40,'mid',1],['tree',86,60,38,'mid',1],['pine',56,50,18,'far']] },
-  castle: { sky:['#ffb3d1','#fff0f7'], glow:['sun', 84, 14, 12], hills:['#cdeaa8','#a8db86','#86c96a'],
-            props:[['castle',30,56,40,'far'],['blossom',86,58,22,'mid',1],['tulip',74,74,12,'near',1],['tulip',14,74,12,'near',1]] },
   hills:  { sky:['#ffa77a','#ffe3c6'], glow:['sun', 50, 22, 18], hills:['#c9b0e0','#b7d98f','#91c86c'],
             props:[['peak',22,48,34,'far'],['mountain',78,50,30,'far'],['pine',90,66,28,'mid',1],['pine',8,68,24,'mid',1]] },
-  cave:   { sky:['#2a1745','#5b3d86'], glow:null, hills:['#3a2a55','#2c1f42','#221735'], cave:true,
-            props:[['gem',20,48,9,'far'],['gem',76,42,7,'far'],['rock',10,74,24,'near'],['rock',90,74,20,'near']] },
-  fair:   { sky:['#ff9ec4','#ffe4f0'], glow:null, hills:['#c6e8a5','#a4d985','#86c96a'],
-            props:[['rainbow',72,34,30,'far'],['tent',26,62,36,'mid'],['sunflower',88,72,16,'near',1]] },
+  cottage:{ sky:['#a9dcff','#eef8ff'], glow:['sun', 84, 14, 12], hills:['#c2e5a0','#9fd47d','#7dc35e'],
+            props:[['pine',90,58,30,'far'],['cottage',24,64,34,'mid'],['rose',80,74,12,'near',1],['tulip',8,74,11,'near',1]] },
+  river:  { sky:['#9ad7ff','#e9f8ff'], glow:['sun', 16, 14, 12], hills:['#bfe3a2','#97d07c','water'], bridge:true,
+            props:[['pine',86,56,26,'far'],['tree',10,56,24,'far'],['herb',92,72,16,'near',1]] },
+  home:   { indoor:true, wall:['#ffe9cf','#f6cfa6'],
+            props:[['window',30,50,26,'far'],['clock',76,46,14,'far'],['couch',78,68,26,'mid'],['candle',10,72,12,'near']] },
 };
 
 /* Rolling hills as smooth SVG paths in a 1000×1000 box. */
@@ -539,8 +447,10 @@ function shade(hex, amt) {
   return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.max(0, Math.min(255, Math.round(v + amt))).toString(16).padStart(2, '0')).join('');
 }
 
-function paintBackdrop(name) {
+function paintBackdrop(name, extra) {
   const bd = BACKDROPS[name];
+  const props = bd.props.concat(extra || []);
+  if (bd.indoor) return paintRoom(bd, props);
   const uid = 'g' + Math.random().toString(36).slice(2, 7);
   let sky = `<svg viewBox="0 0 1000 1000" preserveAspectRatio="none"><defs>
     <linearGradient id="${uid}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bd.sky[0]}"/><stop offset="1" stop-color="${bd.sky[1]}"/></linearGradient>
@@ -569,16 +479,51 @@ function paintBackdrop(name) {
     } else {
       svg += `<linearGradient id="${uid}${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shade(col, 18)}"/><stop offset=".5" stop-color="${col}"/><stop offset="1" stop-color="${shade(col, -30)}"/></linearGradient></defs>
         <path d="${hillPath(base, amp, waves, phase)}" fill="url(#${uid}${i})"/>`;
-      if (bd.cave && i === 2) svg += `<path d="M0 0 H1000 V1000 H860 C860 520 720 300 500 300 C280 300 140 520 140 1000 H0 Z" fill="#160e24" opacity=".92"/>`;
     }
+    if (bd.bridge && i === 2) svg += bridgeSVG(base);
     svg += '</svg>';
-    $(id).innerHTML = svg + bd.props.filter(p => p[4] === ['far', 'mid', 'near'][i]).map(propHTML).join('');
+    $(id).innerHTML = svg + props.filter(p => p[4] === ['far', 'mid', 'near'][i]).map(propHTML).join('');
+  });
+}
+/* A wooden arched footbridge over the water. */
+function bridgeSVG(base) {
+  const deck = base - 20, posts = [];
+  for (let x = 120; x <= 880; x += 76) {
+    const y = deck - 120 * Math.sin(Math.PI * (x - 100) / 800);
+    posts.push(`<rect x="${x - 7}" y="${(y - 70).toFixed(0)}" width="14" height="72" rx="5" fill="#8a5426"/>`);
+  }
+  return `<g>
+    <path d="M60 ${base + 40} Q500 ${deck - 300} 940 ${base + 40}" fill="none" stroke="#6b3d17" stroke-width="34" stroke-linecap="round"/>
+    <path d="M60 ${base + 40} Q500 ${deck - 300} 940 ${base + 40}" fill="none" stroke="#b07a42" stroke-width="22" stroke-linecap="round"/>
+    <path d="M100 ${deck} Q500 ${deck - 240} 900 ${deck}" fill="none" stroke="#c8925a" stroke-width="10" stroke-linecap="round" transform="translate(0,-70)"/>
+    ${posts.join('')}
+  </g>`;
+}
+/* Inside a cosy cottage: papered wall, wainscot, rug. */
+function paintRoom(bd, props) {
+  const uid = 'r' + Math.random().toString(36).slice(2, 7);
+  $('layerSky').innerHTML = `<svg viewBox="0 0 1000 1000" preserveAspectRatio="none"><defs>
+    <linearGradient id="${uid}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${bd.wall[0]}"/><stop offset="1" stop-color="${bd.wall[1]}"/></linearGradient>
+    <pattern id="${uid}p" width="80" height="1000" patternUnits="userSpaceOnUse"><rect width="40" height="1000" fill="#fff" opacity=".18"/></pattern>
+    <linearGradient id="${uid}d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b97a45"/><stop offset="1" stop-color="#8a5528"/></linearGradient>
+    <radialGradient id="${uid}l" cx=".5" cy=".3" r=".7"><stop offset="0" stop-color="#fff3cc" stop-opacity=".6"/><stop offset="1" stop-color="#fff3cc" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#${uid}w)"/><rect width="1000" height="640" fill="url(#${uid}p)"/>
+  <rect y="600" width="1000" height="400" fill="url(#${uid}d)"/><rect y="596" width="1000" height="12" fill="#f3d3a8"/>
+  <g stroke="#6e4220" stroke-opacity=".35" stroke-width="4">${[120, 280, 440, 600, 760, 920].map(x => `<line x1="${x}" y1="610" x2="${x}" y2="1000"/>`).join('')}</g>
+  <rect width="1000" height="1000" fill="url(#${uid}l)"/></svg>`;
+  ['layerFar', 'layerMid', 'layerNear'].forEach((id, i) => {
+    const layer = ['far', 'mid', 'near'][i];
+    $(id).innerHTML = (i === 2 ? `<svg viewBox="0 0 1000 1000" preserveAspectRatio="none"><ellipse cx="500" cy="900" rx="380" ry="70" fill="#b8434f" opacity=".85"/><ellipse cx="500" cy="900" rx="320" ry="52" fill="none" stroke="#f6c26b" stroke-width="8" stroke-dasharray="20 14" opacity=".8"/></svg>` : '')
+      + props.filter(p => p[4] === layer).map(p => propHTML(p.slice(0, 4).concat(['room-' + layer]))).join('');
   });
 }
 // Lowest horizon line of each hill layer, so props stand on the ground instead of floating.
 const GROUND = { far: 60, mid: 66, near: 75 };
+const ROOM = { 'room-far': 'far', 'room-mid': 'mid', 'room-near': 'near' };
 function propHTML([key, x, y, size, layer, sway]) {
-  if (GROUND[layer]) y = Math.max(y, GROUND[layer]);
+  if (ROOM[layer]) layer = ROOM[layer];   // indoors: props sit exactly where placed
+  else if (GROUND[layer]) y = Math.max(y, GROUND[layer]);
   const glow = layer === 'glow' ? 'filter:drop-shadow(0 0 30px rgba(255,230,150,.8));' : '';
   return `<img class="prop ${layer}${sway ? ' sway' : ''}" src="${art(key)}" alt="" style="left:${x}%;top:${y}%;height:${size}%;${glow}animation-delay:${(x % 7) * -.7}s">`;
 }
@@ -611,39 +556,106 @@ function pickVoice() {
 function voiceIsBasic() { return !voice || !/natural|neural|premium|enhanced|google/i.test(voice.name); }
 if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 
-let muteUntil = 0, speaking = false;
-/* parts: strings or {text, el}; an el gets its words lit up as they are spoken. */
-function speak(parts, onDone) {
-  const list = (Array.isArray(parts) ? parts : [parts]).filter(Boolean).map(p => typeof p === 'string' ? { text: p } : p);
-  const light = p => p && p.el && p.el.querySelectorAll('.w').forEach(w => w.classList.add('lit'));
-  if (!('speechSynthesis' in window) || !list.length) { list.forEach(light); onDone && setTimeout(onDone, 300); return; }
-  speechSynthesis.cancel();
+let muteUntil = 0, speaking = false, speakToken = 0, clipSrc = null;
+const AUDIO = window.AUDIO || {};               // recorded clip key -> seconds
+const clipBuffers = {};                          // key -> Promise<AudioBuffer>
+function clipFor(seg) { const k = clipKey(seg.voice || 'n', seg.text); return AUDIO[k] ? k : null; }
+function loadClip(key) {
+  if (!clipBuffers[key]) {
+    const c = fxCtx();
+    clipBuffers[key] = !c || location.protocol === 'file:' ? Promise.resolve(null)
+      : fetch(`audio/${key}.mp3`).then(r => r.ok ? r.arrayBuffer() : null)
+          .then(b => b && new Promise(res => c.decodeAudioData(b, res, () => res(null)))).catch(() => null);
+  }
+  return clipBuffers[key];
+}
+function preloadLines(lines) { lines.flatMap(l => parseLine(l)).forEach(seg => { const k = clipFor(seg); if (k) loadClip(k); }); }
+
+/* items: line strings (may contain several voices) or {segs, el} from renderLine().
+   Plays each segment's recording; words in its caption light up as it goes. */
+function speak(items, onDone) {
+  const queue = [];
+  (Array.isArray(items) ? items : [items]).filter(Boolean).forEach(it => {
+    if (typeof it === 'string') parseLine(it).forEach(seg => queue.push(seg));
+    else it.segs.forEach(seg => queue.push(seg));
+  });
+  hush();
+  const token = ++speakToken;
   speaking = true;
-  let i = 0, finished = false;
-  const finish = () => { if (finished) return; finished = true; speaking = false; list.forEach(light); hold(400); onDone && onDone(); };
+  const light = seg => seg && seg.el && seg.el.querySelectorAll('.w').forEach(w => w.classList.add('lit'));
+  let i = 0;
+  const finish = () => { if (token !== speakToken) return; speakToken++; speaking = false; queue.forEach(light); hold(400); onDone && onDone(); };
   const next = () => {
-    if (finished) return;
-    if (i > 0) light(list[i - 1]);
-    if (i >= list.length) return finish();
-    const part = list[i++];
-    const u = new SpeechSynthesisUtterance(part.text);
-    u.lang = voice ? voice.lang : 'en-GB';
-    if (voice) u.voice = voice;
-    u.rate = prefs.slow ? 0.86 : 0.96;
-    u.pitch = 1.0;   // a raised pitch makes most engines sound more synthetic
-    u.onend = next; u.onerror = finish;
-    if (part.el) u.onboundary = e => {
-      if (e.name && e.name !== 'word') return;
-      $('caption').classList.add('karaoke');
-      part.el.querySelectorAll('.w').forEach(w => { if (+w.dataset.i <= e.charIndex) w.classList.add('lit'); });
-    };
-    speechSynthesis.speak(u);
+    if (token !== speakToken) return;
+    if (i > 0) light(queue[i - 1]);
+    if (i >= queue.length) return finish();
+    const seg = queue[i++], key = clipFor(seg);
+    const guard = setTimeout(() => token === speakToken && next(), ((key ? AUDIO[key] : seg.text.split(/\s+/).length * .5) + 2.5) * 1000);
+    const go = () => { clearTimeout(guard); setTimeout(next, seg.voice !== (queue[i] || {}).voice ? 260 : 120); };
+    if (key) loadClip(key).then(buf => {
+      if (token !== speakToken) return;
+      buf ? playClip(buf, seg, go) : deviceVoice(seg, go);
+    });
+    else deviceVoice(seg, go);
   };
   next();
-  const words = list.map(p => p.text).join(' ').split(/\s+/).length;
-  setTimeout(finish, 2500 + words * 520);   // safety net: some browsers never fire onend
 }
-function hush() { if ('speechSynthesis' in window) speechSynthesis.cancel(); speaking = false; }
+function playClip(buf, seg, done) {
+  const c = fxCtx();
+  const src = c.createBufferSource(), g = c.createGain();
+  src.buffer = buf; g.gain.value = 1;
+  src.connect(g).connect(c.destination);
+  clipSrc = src;
+  const t0 = c.currentTime + .03;
+  src.onended = () => { if (clipSrc === src) clipSrc = null; done(); };
+  src.start(t0);
+  if (!seg.el) return;
+  // Light words in proportion to their length, which tracks natural speech closely.
+  $('caption').classList.add('karaoke');
+  const words = [...seg.el.querySelectorAll('.w')];
+  const total = words.reduce((n, w) => n + w.textContent.length + 1, 0);
+  let acc = 0;
+  const marks = words.map(w => { const at = acc / total; acc += w.textContent.length + 1; return at; });
+  const tick = () => {
+    if (clipSrc !== src) return;
+    const f = (c.currentTime - t0) / buf.duration;
+    words.forEach((w, k) => { if (marks[k] <= f + .02) w.classList.add('lit'); });
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+function deviceVoice(seg, done) {
+  if (!('speechSynthesis' in window)) return setTimeout(done, 400);
+  const u = new SpeechSynthesisUtterance(seg.text);
+  u.lang = voice ? voice.lang : 'en-GB';
+  if (voice) u.voice = voice;
+  u.rate = prefs.slow ? 0.86 : 0.96;
+  u.pitch = seg.voice === 'n' ? 1 : /wolf|papa|troll|goat3/.test(seg.voice) ? .7 : /baby|goat1|chick|pig|bird/.test(seg.voice) ? 1.4 : 1.15;
+  u.onend = done; u.onerror = done;
+  if (seg.el) u.onboundary = e => {
+    if (e.name && e.name !== 'word') return;
+    $('caption').classList.add('karaoke');
+    seg.el.querySelectorAll('.w').forEach(w => { if (+w.dataset.i <= e.charIndex) w.classList.add('lit'); });
+  };
+  speechSynthesis.speak(u);
+}
+function hush() {
+  speakToken++; speaking = false;
+  if (clipSrc) { try { clipSrc.onended = null; clipSrc.stop(); } catch (e) {} clipSrc = null; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+}
+/* Builds a caption: storyteller text plain, characters' words in quotes. */
+function renderLine(el, line) {
+  el.innerHTML = '';
+  const segs = parseLine(line).map(seg => {
+    const span = document.createElement('span');
+    span.className = 'seg' + (seg.dlg ? ' dlg' : '');
+    span.innerHTML = (seg.dlg ? '“' : '') + wordsHTML(seg.text) + (seg.dlg ? '”' : '');
+    el.append(span, ' ');
+    return Object.assign({}, seg, { el: span });
+  });
+  return { segs, el };
+}
 function wordsHTML(text) {
   let out = '', pos = 0;
   text.split(/(\s+)/).forEach(tok => {
@@ -915,7 +927,8 @@ async function openStory(st) {
   $('bubble').classList.remove('show');
   setText(st.title, 'The show is about to begin…');
   setCta(null);
-  const keys = st.scenes.flatMap(s => [s.actor, s.target, s.prop]).filter(Boolean)
+  preloadLines(st.scenes.slice(0, 3).flatMap(s => [s.say, s.ask, s.done, s.model && `@${s.voice || 'n'}:${s.model}`]));
+  const keys = st.scenes.flatMap(s => [s.actor, s.with, s.target, s.prop].concat((s.set || []).map(p => p[0]))).filter(Boolean)
     .concat(Object.values(BACKDROPS).flatMap(b => b.props.map(p => p[0]).concat(b.glow ? [b.glow[0]] : [])), ['star', 'glow_star', 'wind', 'clap']);
   await preload(keys);
   if (story !== st || scene) return;
@@ -925,7 +938,9 @@ async function openStory(st) {
     if (prefs.ears) await earsOn();   // needs a user gesture on phones
     $('stage').classList.add('open');
     sfx.open();
-    setTimeout(() => playScene(0), 1300);
+    preloadLines(st.scenes.flatMap(s => [s.say, s.ask, s.done, s.model && `@${s.voice || 'n'}:${s.model}`]).concat(PRAISE, SYSTEM_LINES));
+    speak(st.title);
+    setTimeout(() => playScene(0), 2400);
   }, true, 'masks');
 }
 
@@ -934,9 +949,17 @@ function renderProgress() {
   story.scenes.forEach((_, i) => { const s = document.createElement('span'); s.className = i < idx ? 'done' : (i === idx && scene) ? 'now' : ''; p.appendChild(s); });
 }
 
-function setActor(key, animate) {
+function setSide(key) {
+  const s = $('side'), w = $('sideWrap');
+  $('stage').classList.toggle('duo', !!key);
+  if (!key) { w.style.visibility = 'hidden'; delete s.dataset.key; return; }
+  w.style.visibility = 'visible';
+  if (s.dataset.key !== key) { s.dataset.key = key; s.src = art(key); s.className = 'actor'; void s.offsetWidth; s.className = 'actor enter'; }
+}
+function setActor(key, animate, scale) {
   const a = $('actor');
-  if (!key) { a.removeAttribute('src'); delete a.dataset.key; $('actorWrap').style.visibility = 'hidden'; return; }
+  $('actorWrap').style.setProperty('--s', scale || 1);
+  if (!key) { a.removeAttribute('src'); delete a.dataset.key; $('actorWrap').style.visibility = 'hidden'; setSide(null); return; }
   $('actorWrap').style.visibility = 'visible';
   a.dataset.key = key; a.src = art(key);
   if (animate) { a.className = 'actor'; void a.offsetWidth; a.className = 'actor enter'; setTimeout(() => { if (a.dataset.key === key && a.className === 'actor enter') a.className = 'actor idle'; }, 950); }
@@ -948,8 +971,7 @@ function bubble(text, ms) {
 }
 function setText(say, ask) {
   $('caption').classList.remove('karaoke');
-  $('say').innerHTML = say ? wordsHTML(say) : '';
-  $('ask').innerHTML = ask ? wordsHTML(ask) : '';
+  return [renderLine($('say'), say), renderLine($('ask'), ask)];
 }
 function setCta(label, fn, pulse, icon) {
   const c = $('cta');
@@ -965,14 +987,15 @@ function playScene(i) {
   idx = i; scene = story.scenes[i]; progress = 0; phase = 'intro';
   stopListening();
   renderProgress();
-  paintBackdrop(scene.bg);
+  paintBackdrop(scene.bg, scene.set);
   $('targets').innerHTML = ''; $('reps').innerHTML = '';
   $('bubble').classList.remove('show');
-  setText(scene.say, scene.ask);
+  const lines = setText(scene.say, scene.ask);
 
-  if (scene.type === 'finale') return playFinale(token);
+  if (scene.type === 'finale') return playFinale(token, lines);
 
-  setActor(scene.actor, true);
+  setActor(scene.actor, true, scene.scale);
+  setSide(scene.with);
   if (scene.type === 'sound') {
     const r = $('reps');
     for (let k = 0; k < (scene.reps || 3); k++) { const s = document.createElement('img'); s.src = art('star'); s.alt = ''; r.appendChild(s); }
@@ -981,7 +1004,7 @@ function playScene(i) {
   if (scene.type === 'tap' || scene.type === 'blow') placeTargets();
 
   setCta(null);
-  speak([{ text: scene.say, el: $('say') }, { text: scene.ask, el: $('ask') }], () => {
+  speak(lines, () => {
     if (token !== playToken) return;
     phase = 'play';
     if (scene.type === 'tell') return setCta('Next', next, true);
@@ -1018,8 +1041,7 @@ function perform() {
   burstAt($('reps').children[progress - 1], 14);
   if (progress >= reps) return sceneDone();
   phase = 'pause';
-  const praise = ['Wonderful! Once more!', 'Great! One more time!', 'Brilliant!'];
-  speak(praise[(progress - 1) % praise.length], () => { if (phase === 'pause') phase = 'play'; });
+  speak(PRAISE[(progress - 1 + idx) % PRAISE.length], () => { if (phase === 'pause') phase = 'play'; });
 }
 
 function clearOne(el) {
@@ -1070,8 +1092,7 @@ function sceneDone() {
   const token = playToken;
   setTimeout(() => {
     if (token !== playToken) return;
-    setText(scene.done, '');
-    speak({ text: scene.done, el: $('say') }, () => token === playToken && setCta('Next', next, true));
+    speak(setText(scene.done, '')[0], () => token === playToken && setCta('Next', next, true));
   }, 600);
 }
 
@@ -1080,15 +1101,17 @@ function next() {
   if (idx + 1 >= story.scenes.length) return;
   setCta(null);
   const a = $('actor'), token = playToken;
-  if (a.dataset.key && story.scenes[idx + 1].actor !== a.dataset.key) {
+  const nx = story.scenes[idx + 1];
+  if (nx.with !== $('side').dataset.key) setSide(null);
+  if (a.dataset.key && (nx.actor !== a.dataset.key || (nx.scale || 1) !== +($('actorWrap').style.getPropertyValue('--s') || 1))) {
     a.className = 'actor exit';
     setTimeout(() => token === playToken && playScene(idx + 1), 380);
   } else playScene(idx + 1);
 }
 
-function playFinale(token) {
+function playFinale(token, lines) {
   setActor(null);
-  const cast = [...new Set(story.scenes.map(s => s.actor).filter(Boolean))].slice(-7);
+  const cast = [...new Set(story.scenes.flatMap(s => [s.actor, s.with]).filter(Boolean))].slice(-7);
   // Curtain call: front row and a slightly raised back row, like a real ensemble bow.
   const t = $('targets'), front = cast.filter((_, i) => i % 2 === 0), back = cast.filter((_, i) => i % 2 === 1);
   cast.forEach((k, i) => {
@@ -1112,7 +1135,7 @@ function playFinale(token) {
   setCta(null);
   applause();
   setTimeout(() => token === playToken && confetti(160), 500);
-  setTimeout(() => token === playToken && speak([{ text: scene.say, el: $('say') }, { text: scene.ask, el: $('ask') }], () => {
+  setTimeout(() => token === playToken && speak(lines, () => {
     if (token !== playToken) return;
     setCta('Take a bow', () => {
       prefs.stars[story.id] = (prefs.stars[story.id] || 0) + 1; save();
@@ -1120,7 +1143,7 @@ function playFinale(token) {
       idx = story.scenes.length; renderProgress();
       $('stage').classList.remove('open');
       setText('The End', 'You earned a golden star!');
-      speak('The end. You earned a golden star!');
+      speak(SYSTEM_LINES[0]);
       setCta('Back to stories', leaveTheatre, true, 'star');
     }, true, 'clap');
   }), 1400);
@@ -1136,15 +1159,14 @@ $('replay').onclick = () => {
   if (!scene) return;
   const done = phase === 'done';
   if (phase === 'play') phase = 'pause';
-  setText(done ? scene.done : scene.say, done ? '' : scene.ask);
-  const parts = done ? [{ text: scene.done, el: $('say') }] : [{ text: scene.say, el: $('say') }, { text: scene.ask, el: $('ask') }];
-  speak(parts, () => { if (phase === 'pause') phase = 'play'; });
+  const lines = done ? setText(scene.done, '').slice(0, 1) : setText(scene.say, scene.ask);
+  speak(lines, () => { if (phase === 'pause') phase = 'play'; });
 };
 /* The character "says" its sound once, as a model to copy. */
 function playModel(onDone) {
   hop(); bubble(scene.sound, 1800);
   if (scene.fric) { const ms = fricative(scene.fric); setTimeout(onDone, ms || 300); }
-  else speak(scene.model, onDone);
+  else speak(`@${scene.voice || 'n'}:${scene.model}`, onDone);
 }
 $('actor').onclick = () => {
   if (!scene || scene.type !== 'sound' || phase === 'pause') return;
@@ -1238,15 +1260,17 @@ function renderGrownups() {
   $('storyRows').innerHTML = STORIES.map(st =>
     `<div class="row"><img src="${art(st.cover)}" alt=""><span class="grow">${st.title}<small>${st.scenes.filter(s => s.practises).map(s => s.practises).join(', ')}</small></span><span>${prefs.stars[st.id] ? '★ ' + prefs.stars[st.id] : ''}</span></div>`).join('');
   pickVoice();
-  $('voiceInfo').innerHTML = !('speechSynthesis' in window)
-    ? 'This browser cannot read aloud.'
-    : `Storyteller<small>${voice ? voice.name : 'No English voice found'}${voiceIsBasic() ? '. For a more natural voice on iPhone or iPad, open Settings › Accessibility › Spoken Content › Voices › English and download an “Enhanced” or “Premium” voice. On a computer, Microsoft Edge has natural voices built in.' : ''}</small>`;
+  const recorded = Object.keys(AUDIO).length;
+  $('voiceInfo').innerHTML = recorded
+    ? `Storyteller<small>Recorded neural voices (Kokoro): a storyteller plus a voice for each character. Your device's voice is only a backup.</small>`
+    : !('speechSynthesis' in window) ? 'This browser cannot read aloud.'
+    : `Storyteller<small>${voice ? voice.name : 'No English voice found'}${voiceIsBasic() ? '. For a more natural voice on iPhone or iPad, open Settings › Accessibility › Spoken Content › Voices › English and download an “Enhanced” or “Premium” voice.' : ''}</small>`;
 }
 $('openGrownups').onclick = () => { renderGrownups(); show('grownups'); };
 $('guBack').onclick = () => { renderHome(); show('home'); };
 $('optEars').onchange = e => { prefs.ears = e.target.checked; save(); };
 $('optSlow').onchange = e => { prefs.slow = e.target.checked; save(); };
-$('testVoice').onclick = () => speak('Once upon a time, there was a little theatre in the forest.');
+$('testVoice').onclick = () => { fxCtx(); speak(SYSTEM_LINES[1]); };
 $('reset').onclick = () => { if (confirm('Clear all stars?')) { prefs.stars = {}; save(); renderGrownups(); } };
 
 renderHome();
