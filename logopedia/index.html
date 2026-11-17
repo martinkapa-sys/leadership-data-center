@@ -443,16 +443,16 @@ const STORIES = [
       { type:'blow', bg:'forest', actor:'princess', target:'cloud', count:3, exit:'drift', practises:'breathing',
         say:'The princess walks into the Whispering Forest. But it is so foggy!', ask:'Take a big breath and blow the fog away!',
         done:'Whoosh! Now we can see the path.' },
-      { type:'sound', bg:'forest', actor:'snake', sound:'Sssss!', model:'Sssssss', practises:'S',
+      { type:'sound', bg:'forest', actor:'snake', sound:'Sssss!', model:'Sssssss', fric:'s', practises:'S',
         say:'A green snake is lying on the path.', ask:'Hiss like the snake to say hello: Sssss!',
         done:'The snake hisses back and points with its tail. That way!' },
-      { type:'sound', bg:'meadow', actor:'honeybee', sound:'Zzzzz!', model:'Bzzzzzz', practises:'Z',
+      { type:'sound', bg:'meadow', actor:'honeybee', sound:'Zzzzz!', model:'Bzzzzzz', fric:'z', practises:'Z',
         say:'In the meadow, busy bees fly from flower to flower.', ask:'Buzz like a bee: Zzzzz!',
         done:'The bees buzz: we saw something shiny near the pond!' },
       { type:'tap', bg:'pond', actor:'frog', target:'fly', count:5, exit:'feed', practises:'tongue out',
         say:'At the pond sits a hungry frog.', ask:'Stick your tongue out like the frog. Then tap a fly!',
         done:'Yum! The happy frog hops towards the old tree.' },
-      { type:'sound', bg:'night', actor:'owl', sound:'Shhhh!', model:'Shhhhhh', practises:'SH',
+      { type:'sound', bg:'night', actor:'owl', sound:'Shhhh!', model:'Shhhhhh', fric:'sh', practises:'SH',
         say:'In the old tree, baby owls are sleeping.', ask:'Let’s be very quiet. Say: Shhhh!',
         done:'Mother Owl whispers: thank you! The crown is in the chick’s nest.' },
       { type:'sound', bg:'farm', actor:'chick', sound:'Cheep!', model:'Cheep, cheep', practises:'CH',
@@ -602,16 +602,13 @@ function preload(keys) { return Promise.all([...new Set(keys)].map(k => new Prom
 let voice = null;
 function pickVoice() {
   if (!('speechSynthesis' in window)) return;
-  const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
-  const female = /female|serena|kate|karen|moira|tessa|samantha|libby|sonia|hazel|susan|martha|ava|zoe/i;
-  const premium = /premium|enhanced|natural|neural/i;
-  for (const p of [/en-GB/i, /en-AU/i, /en-IE/i, /en-US/i]) {
-    const list = vs.filter(v => p.test(v.lang));
-    const best = list.find(v => premium.test(v.name) && female.test(v.name)) || list.find(v => premium.test(v.name)) || list.find(v => female.test(v.name)) || list[0];
-    if (best) { voice = best; return; }
-  }
-  voice = vs[0] || null;
+  const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang) && !/compact|espeak|robot|whisper|novelty|bad news|zarvox|trinoids|bells|bahh|boing|bubbles|cellos|organ|jester|superstar|wobble/i.test(v.name));
+  // Most natural first: cloud "Natural"/neural voices, then Apple Premium/Enhanced, then Google voices.
+  const rank = [/natural|neural/i, /premium/i, /enhanced/i, /google uk english female/i, /google/i, /serena|kate|sonia|libby|stephanie|martha|samantha|karen|moira|tessa|ava|zoe/i];
+  const score = v => { const r = rank.findIndex(re => re.test(v.name)); return (r < 0 ? 50 : r * 10) + (/en-GB/i.test(v.lang) ? 0 : /en-(AU|IE)/i.test(v.lang) ? 2 : 4) + (v.localService ? 0 : -1); };
+  voice = vs.sort((a, b) => score(a) - score(b))[0] || null;
 }
+function voiceIsBasic() { return !voice || !/natural|neural|premium|enhanced|google/i.test(voice.name); }
 if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 
 let muteUntil = 0, speaking = false;
@@ -623,7 +620,7 @@ function speak(parts, onDone) {
   speechSynthesis.cancel();
   speaking = true;
   let i = 0, finished = false;
-  const finish = () => { if (finished) return; finished = true; speaking = false; list.forEach(light); muteUntil = performance.now() + 400; onDone && onDone(); };
+  const finish = () => { if (finished) return; finished = true; speaking = false; list.forEach(light); hold(400); onDone && onDone(); };
   const next = () => {
     if (finished) return;
     if (i > 0) light(list[i - 1]);
@@ -632,8 +629,8 @@ function speak(parts, onDone) {
     const u = new SpeechSynthesisUtterance(part.text);
     u.lang = voice ? voice.lang : 'en-GB';
     if (voice) u.voice = voice;
-    u.rate = prefs.slow ? 0.84 : 0.97;
-    u.pitch = 1.12;
+    u.rate = prefs.slow ? 0.86 : 0.96;
+    u.pitch = 1.0;   // a raised pitch makes most engines sound more synthetic
     u.onend = next; u.onerror = finish;
     if (part.el) u.onboundary = e => {
       if (e.name && e.name !== 'word') return;
@@ -658,46 +655,167 @@ function wordsHTML(text) {
 
 /* =========================================================
    SOUND DESIGN (Web Audio, no files)
+   Everything goes through a gentle compressor and a soft
+   room reverb, so it sounds like an instrument, not a beep.
+   Plucks use Karplus-Strong string synthesis (a harp),
+   hits use a marimba-like mallet with inharmonic partials.
    ========================================================= */
-let fx = null;
-function fxCtx() { if (!fx) { try { fx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (fx && fx.state === 'suspended') fx.resume(); return fx; }
-function tone(freqs, opts) {
-  const c = fxCtx(); if (!c) return;
-  const o = Object.assign({ type: 'sine', gap: .08, dur: .7, vol: .14 }, opts);
-  muteUntil = Math.max(muteUntil, performance.now() + (freqs.length * o.gap + o.dur) * 1000 + 150);
-  const master = c.createGain(); master.gain.value = o.vol; master.connect(c.destination);
-  freqs.forEach((f, i) => {
-    const t = c.currentTime + i * o.gap;
-    [1, 2.01].forEach((mult, k) => {          // fundamental + a soft bell partial
-      const osc = c.createOscillator(), g = c.createGain();
-      osc.type = o.type; osc.frequency.value = f * mult;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(k ? .25 : 1, t + .012);
-      g.gain.exponentialRampToValueAtTime(.0008, t + o.dur);
-      osc.connect(g).connect(master); osc.start(t); osc.stop(t + o.dur + .05);
-    });
-  });
+let fx = null, bus = null;
+function fxCtx() {
+  if (!fx) {
+    try {
+      fx = new (window.AudioContext || window.webkitAudioContext)();
+      const comp = fx.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.ratio.value = 3; comp.attack.value = .01; comp.release.value = .25;
+      comp.connect(fx.destination);
+      const dry = fx.createGain(); dry.gain.value = .85; dry.connect(comp);
+      const verb = fx.createConvolver(); verb.buffer = roomImpulse(2.4, 3.2);
+      const wet = fx.createGain(); wet.gain.value = .35; verb.connect(wet).connect(comp);
+      bus = fx.createGain(); bus.connect(dry); bus.connect(verb);
+    } catch (e) { fx = null; }
+  }
+  if (fx && fx.state === 'suspended') fx.resume();
+  return fx;
 }
-const sfx = {
-  hit:  () => tone([880, 1318.5], { gap: .07, dur: .6 }),
-  win:  () => tone([784, 987.8, 1174.7, 1568], { gap: .09, dur: 1.1, vol: .13 }),
-  pop:  () => tone([1046.5], { dur: .25, vol: .12, type: 'triangle' }),
-  open: () => tone([392, 523.3, 659.3, 784], { gap: .14, dur: 1.4, vol: .1 }),
-};
-function applause() {
-  const c = fxCtx(); if (!c) return;
-  muteUntil = Math.max(muteUntil, performance.now() + 3400);
-  const len = c.sampleRate * 3, buf = c.createBuffer(2, len, c.sampleRate);
+function roomImpulse(secs, decay) {
+  const sr = fx.sampleRate, len = Math.floor(sr * secs), buf = fx.createBuffer(2, len, sr);
   for (let ch = 0; ch < 2; ch++) {
     const d = buf.getChannelData(ch);
-    for (let k = 0; k < 170; k++) {
-      const start = Math.floor(Math.random() * (len - 4000)), dur = 500 + Math.random() * 900, amp = .25 + Math.random() * .35;
-      for (let j = 0; j < dur; j++) d[start + j] += (Math.random() * 2 - 1) * Math.exp(-j / 160) * amp;
+    for (let i = 0; i < len; i++) {
+      const t = i / len;
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, decay) * (i < sr * .012 ? i / (sr * .012) : 1);
     }
   }
-  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-  s.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2000; f.Q.value = .5;
-  g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(.8, c.currentTime + .3); g.gain.linearRampToValueAtTime(0, c.currentTime + 3);
-  s.connect(f).connect(g).connect(c.destination); s.start();
+  return buf;
+}
+function hold(ms) { muteUntil = Math.max(muteUntil, performance.now() + ms); }   // keep magic ears deaf to our own sounds
+function playBuffer(buf, when, gain, pan) {
+  const src = fx.createBufferSource(), g = fx.createGain();
+  src.buffer = buf; g.gain.value = gain;
+  let node = src.connect(g);
+  if (fx.createStereoPanner) { const p = fx.createStereoPanner(); p.pan.value = pan || 0; node = node.connect(p); }
+  node.connect(bus); src.start(when);
+}
+
+/* Karplus-Strong plucked string, cached per pitch. */
+const pluckCache = {};
+function pluck(freq) {
+  const k = Math.round(freq);
+  if (pluckCache[k]) return pluckCache[k];
+  const sr = fx.sampleRate, len = Math.floor(sr * 2.2), buf = fx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  const n = Math.max(2, Math.round(sr / freq)), ring = new Float32Array(n);
+  let prev = 0;
+  for (let i = 0; i < n; i++) { prev = prev * .45 + (Math.random() * 2 - 1) * .55; ring[i] = prev; }   // softened pluck
+  const damp = freq > 900 ? .9975 : .9985;
+  for (let i = 0, j = 0; i < len; i++) {
+    const nj = (j + 1) % n;
+    d[i] = ring[j];
+    ring[j] = damp * .5 * (ring[j] + ring[nj]);
+    j = nj;
+  }
+  for (let i = 0; i < 64; i++) d[i] *= i / 64;   // no click
+  return (pluckCache[k] = buf);
+}
+function harp(notes, gap, gain) {
+  const c = fxCtx(); if (!c) return;
+  const t0 = c.currentTime + .02;
+  notes.forEach((f, i) => playBuffer(pluck(f), t0 + i * gap, gain || .5, (i / Math.max(1, notes.length - 1)) * .6 - .3));
+  hold(notes.length * gap * 1000 + 1200);
+}
+/* Wooden mallet: fundamental plus marimba-like overtones that die away quickly. */
+function mallet(freq, when, gain) {
+  const c = fx, out = c.createGain(), lp = c.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 5200; out.gain.value = gain;
+  lp.connect(out).connect(bus);
+  [[1, 1, 1.2], [3.93, .28, .18], [9.2, .08, .05]].forEach(([mult, amp, dec]) => {
+    const o = c.createOscillator(), g = c.createGain();
+    o.frequency.value = freq * mult;
+    g.gain.setValueAtTime(0, when); g.gain.linearRampToValueAtTime(amp, when + .004);
+    g.gain.exponentialRampToValueAtTime(.0001, when + dec);
+    o.connect(g).connect(lp); o.start(when); o.stop(when + dec + .05);
+  });
+}
+const NOTE = { C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51, G6: 1567.98, G4: 392, C4: 261.63, E4: 329.63, A4: 440 };
+const sfx = {
+  hit() {   // a friendly two-note "ding-dong" on marimba with a harp sparkle
+    const c = fxCtx(); if (!c) return; const t = c.currentTime + .02;
+    mallet(NOTE.G5, t, .55); mallet(NOTE.C6, t + .11, .5);
+    playBuffer(pluck(NOTE.E6), t + .2, .22, .3);
+    hold(1100);
+  },
+  win() {   // rising harp arpeggio with a soft marimba chord underneath
+    const c = fxCtx(); if (!c) return; const t = c.currentTime + .02;
+    harp([NOTE.C5, NOTE.E5, NOTE.G5, NOTE.A5, NOTE.C6, NOTE.E6, NOTE.G6], .07, .45);
+    [NOTE.C5, NOTE.E5, NOTE.G5].forEach(f => mallet(f, t + .5, .25));
+  },
+  pop() {   // a round water-drop "bloop"
+    const c = fxCtx(); if (!c) return; const t = c.currentTime + .01;
+    const o = c.createOscillator(), g = c.createGain();
+    o.frequency.setValueAtTime(320, t); o.frequency.exponentialRampToValueAtTime(980, t + .09);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.9, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + .18);
+    o.connect(g).connect(bus); o.start(t); o.stop(t + .2);
+    playBuffer(pluck(NOTE.A5), t + .06, .2, 0);
+    hold(700);
+  },
+  open() {  // harp glissando as the curtain parts
+    harp([NOTE.C4, NOTE.E4, NOTE.G4, NOTE.A4, NOTE.C5, NOTE.D5, NOTE.E5, NOTE.G5, NOTE.A5, NOTE.C6, NOTE.D6, NOTE.E6], .055, .4);
+  },
+};
+
+/* Applause: a small audience of individual clappers, each with
+   their own hand "colour", tempo and seat in the stereo field. */
+function applause() {
+  const c = fxCtx(); if (!c) return;
+  hold(3600);
+  const sr = c.sampleRate, secs = 3.4, len = Math.floor(sr * secs), buf = c.createBuffer(2, len, sr);
+  const L = buf.getChannelData(0), R = buf.getChannelData(1);
+  for (let p = 0; p < 26; p++) {
+    const rate = 3.6 + Math.random() * 2, start = Math.random() * .7, stop = 2.2 + Math.random() * 1.1;
+    const fc = 900 + Math.random() * 1700, q = 1 + Math.random() * 1.6, pan = Math.random() * 2 - 1;
+    const gl = Math.sqrt((1 - pan) / 2), gr = Math.sqrt((1 + pan) / 2), loud = .5 + Math.random() * .5;
+    // RBJ band-pass coefficients for this person's clap
+    const w = 2 * Math.PI * fc / sr, al = Math.sin(w) / (2 * q), a0 = 1 + al;
+    const b0 = al / a0, b2 = -al / a0, a1 = -2 * Math.cos(w) / a0, a2 = (1 - al) / a0;
+    for (let t = start; t < stop; t += (1 / rate) * (.85 + Math.random() * .3)) {
+      const env = Math.min(1, (t - start) / .4) * Math.min(1, (stop - t) / .6) * loud;
+      const i0 = Math.floor(t * sr), dur = Math.floor(sr * (.03 + Math.random() * .03));
+      let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+      for (let j = 0; j < dur && i0 + j < len; j++) {
+        const x = (Math.random() * 2 - 1) * Math.exp(-j / (sr * .009)) * env;
+        const y = b0 * x + b2 * x2 - a1 * y1 - a2 * y2;
+        x2 = x1; x1 = x; y2 = y1; y1 = y;
+        L[i0 + j] += y * gl * 1.6; R[i0 + j] += y * gr * 1.6;
+      }
+    }
+  }
+  playBuffer(buf, c.currentTime + .02, .9, 0);
+}
+
+/* Model sounds for hissing and buzzing animals. A voice engine reads
+   "Sssss" as letters, so these are shaped from noise like real speech. */
+function fricative(kind, secs) {
+  const c = fxCtx(); if (!c) return 0;
+  secs = secs || 1.5;
+  const sr = c.sampleRate, len = Math.floor(sr * secs), buf = c.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const t = c.currentTime + .03, src = c.createBufferSource(); src.buffer = buf;
+  const env = c.createGain();
+  env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(1, t + .12);
+  env.gain.setValueAtTime(1, t + secs - .3); env.gain.linearRampToValueAtTime(0, t + secs);
+  const shape = c.createBiquadFilter(), tone = c.createBiquadFilter(), g = c.createGain();
+  if (kind === 'sh') { shape.type = 'bandpass'; shape.frequency.value = 2600; shape.Q.value = .9; tone.type = 'lowpass'; tone.frequency.value = 5200; g.gain.value = .42; }
+  else { shape.type = 'highpass'; shape.frequency.value = 4600; tone.type = 'peaking'; tone.frequency.value = 7200; tone.gain.value = 6; g.gain.value = kind === 'z' ? .12 : .22; }
+  src.connect(shape).connect(tone).connect(g).connect(env);
+  env.connect(bus);
+  src.start(t); src.stop(t + secs);
+  if (kind === 'z') {   // voiced buzz underneath the hiss
+    const o = c.createOscillator(), lp = c.createBiquadFilter(), og = c.createGain(), vib = c.createOscillator(), vg = c.createGain();
+    o.type = 'sawtooth'; o.frequency.value = 128; lp.type = 'lowpass'; lp.frequency.value = 900; og.gain.value = .07;
+    vib.frequency.value = 5.5; vg.gain.value = 3; vib.connect(vg).connect(o.frequency);
+    o.connect(lp).connect(og).connect(env); o.start(t); vib.start(t); o.stop(t + secs); vib.stop(t + secs);
+  }
+  hold(secs * 1000 + 400);
+  return secs * 1000 + 100;
 }
 
 /* =========================================================
@@ -867,7 +985,7 @@ function playScene(i) {
     if (token !== playToken) return;
     phase = 'play';
     if (scene.type === 'tell') return setCta('Next', next, true);
-    if (scene.type === 'sound') { listen('voice', perform); setCta('I did it!', perform, false, 'glow_star'); }
+    if (scene.type === 'sound') { phase = 'pause'; playModel(() => { if (token !== playToken) return; phase = 'play'; listen('voice', perform); setCta('I did it!', perform, false, 'glow_star'); }); }
     if (scene.type === 'blow') { listen('blow', clearOne); setCta('I blew!', clearOne, false, 'wind'); }
   });
   // Children may start tapping while the storyteller is still talking.
@@ -1022,13 +1140,17 @@ $('replay').onclick = () => {
   const parts = done ? [{ text: scene.done, el: $('say') }] : [{ text: scene.say, el: $('say') }, { text: scene.ask, el: $('ask') }];
   speak(parts, () => { if (phase === 'pause') phase = 'play'; });
 };
+/* The character "says" its sound once, as a model to copy. */
+function playModel(onDone) {
+  hop(); bubble(scene.sound, 1800);
+  if (scene.fric) { const ms = fricative(scene.fric); setTimeout(onDone, ms || 300); }
+  else speak(scene.model, onDone);
+}
 $('actor').onclick = () => {
-  if (!scene || scene.type !== 'sound') return;
-  // Tapping the character plays its sound as a model to copy.
-  hop(); bubble(scene.sound);
+  if (!scene || scene.type !== 'sound' || phase === 'pause') return;
   const back = phase;
   if (phase === 'play') phase = 'pause';
-  speak(scene.model, () => { if (phase === 'pause' && back === 'play') phase = 'play'; });
+  playModel(() => { if (phase === 'pause' && back === 'play') phase = 'play'; });
 };
 
 /* ---------- Parallax: pointer on desktop, tilt on tablets ---------- */
@@ -1118,7 +1240,7 @@ function renderGrownups() {
   pickVoice();
   $('voiceInfo').innerHTML = !('speechSynthesis' in window)
     ? 'This browser cannot read aloud.'
-    : `Storyteller<small>${voice ? voice.name : 'No English voice found'}</small>`;
+    : `Storyteller<small>${voice ? voice.name : 'No English voice found'}${voiceIsBasic() ? '. For a more natural voice on iPhone or iPad, open Settings › Accessibility › Spoken Content › Voices › English and download an “Enhanced” or “Premium” voice. On a computer, Microsoft Edge has natural voices built in.' : ''}</small>`;
 }
 $('openGrownups').onclick = () => { renderGrownups(); show('grownups'); };
 $('guBack').onclick = () => { renderHome(); show('home'); };

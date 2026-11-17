@@ -25,7 +25,13 @@ and can always tap the golden button instead.
 - A gold-framed proscenium with velvet curtains that gather open, a spotlight with floating dust, footlights and a wooden stage.
 - Painted scenery in layers (sky, far hills, near hills) that shifts slightly when the tablet tilts.
 - 3D character illustrations that hop, breathe and bow, plus glass-style captions where each word lights up as the storyteller reads it.
-- Sound design built in code (chimes and applause), confetti, and a short vibration on Android phones.
+- Sound design built in code, played through a soft room reverb: a plucked harp (Karplus-Strong string synthesis) for the
+  curtain and scene wins, a wooden marimba for each success, a water-drop pop, and applause from 26 individual "clappers".
+- The snake, bee and owl hiss, buzz and hush with sounds shaped from filtered noise, because voice engines read "Sssss" as letters.
+- Confetti, and a short vibration on Android phones.
+
+The storyteller uses the device's own voice, picking the most natural one available (Natural, Premium, Enhanced or Google voices).
+On iPhone and iPad, downloading an "Enhanced" or "Premium" English voice in Settings › Accessibility › Spoken Content makes a big difference.
 
 ## Stories and sounds
 
