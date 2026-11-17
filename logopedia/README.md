@@ -4,7 +4,7 @@ A small web app that helps children aged about 4–6 practise speech sounds at h
 Each story is a short play in a fairytale puppet theatre. The child is the actor: in every
 scene a new animal comes on stage, and the child plays its part by imitating its sound.
 
-It is a single `index.html` file, so there is nothing to install.
+It is a single `index.html` file plus an `art/` folder of illustrations, so there is nothing to install.
 
 ## How it plays
 
@@ -19,6 +19,13 @@ It is a single `index.html` file, so there is nothing to install.
 **Magic ears 👂:** with microphone access, the story moves on when the child makes a sustained
 sound or blows. They hear *that* a sound was made, not *how well*, so a grown-up should stay close
 and can always tap the golden button instead.
+
+## Look and feel
+
+- A gold-framed proscenium with velvet curtains that gather open, a spotlight with floating dust, footlights and a wooden stage.
+- Painted scenery in layers (sky, far hills, near hills) that shifts slightly when the tablet tilts.
+- 3D character illustrations that hop, breathe and bow, plus glass-style captions where each word lights up as the storyteller reads it.
+- Sound design built in code (chimes and applause), confetti, and a short vibration on Android phones.
 
 ## Stories and sounds
 
@@ -38,5 +45,10 @@ New stories are easy to add: each one is a list of scenes in the `STORIES` array
 - **Locally with the microphone:** run `python3 -m http.server` in this folder and open `http://localhost:8000`.
 
 Stars and settings are stored only in that browser (localStorage).
+
+## Credits
+
+Illustrations in `art/` are [Fluent Emoji](https://github.com/microsoft/fluentui-emoji) by Microsoft, used under the MIT License
+(see `art/LICENSE-fluentui-emoji.txt`). The title font, Fraunces, loads from Google Fonts. Without a connection, a system serif font is used instead.
 
 > This app supports speech practice at home. It does not replace a speech therapist.
