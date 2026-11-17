@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffb84d">
+<title>Hovorílko</title>
+<style>
+  :root {
+    --bg: #fff7e6;
+    --card: #ffffff;
+    --ink: #3b2f2f;
+    --muted: #8a7a70;
+    --orange: #ff9f1c;
+    --pink: #ff6b9a;
+    --blue: #4cc9f0;
+    --green: #52c41a;
+    --purple: #9b5de5;
+    --yellow: #ffd23f;
+    --shadow: 0 6px 0 rgba(0,0,0,.12);
+    --radius: 28px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#2a2233; --card:#3a3045; --ink:#fff4e8; --muted:#c9b8d6; }
+  }
+  :root[data-theme="dark"] { --bg:#2a2233; --card:#3a3045; --ink:#fff4e8; --muted:#c9b8d6; }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Comic Sans MS", "Chalkboard SE", "Baloo 2", system-ui, sans-serif;
+    user-select: none; -webkit-user-select: none;
+    overflow-x: hidden;
+  }
+  button { font-family: inherit; color: inherit; cursor: pointer; border: 0; }
+
+  .screen { display: none; min-height: 100%; padding: 16px; padding-bottom: 40px; max-width: 900px; margin: 0 auto; }
+  .screen.active { display: block; animation: pop .25s ease-out; }
+  @keyframes pop { from { transform: scale(.97); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  header.bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  header.bar h1 { flex: 1; margin: 0; font-size: clamp(22px, 5vw, 34px); text-align: center; }
+  .icon-btn {
+    width: 64px; height: 64px; border-radius: 50%; font-size: 32px;
+    background: var(--card); box-shadow: var(--shadow); flex-shrink: 0;
+  }
+  .icon-btn:active, .tile:active, .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.12); }
+  .stars-pill { background: var(--card); box-shadow: var(--shadow); border-radius: 999px; padding: 10px 16px; font-size: 24px; white-space: nowrap; }
+
+  /* Home */
+  .hello { text-align: center; margin: 8px 0 20px; }
+  .hello .mascot { font-size: 90px; display: inline-block; animation: bob 2.5s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-10px) rotate(-4deg); } }
+  .hello h1 { margin: 4px 0 0; font-size: clamp(32px, 8vw, 52px); color: var(--orange); }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .tile {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px 10px; text-align: center; min-height: 150px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    font-size: 22px; font-weight: bold;
+  }
+  .tile .emo { font-size: 64px; line-height: 1; }
+  .tile.c1 { background: #ffe1ec; } .tile.c2 { background: #dff6ff; } .tile.c3 { background: #e6ffd9; }
+  .tile.c4 { background: #f0e4ff; } .tile.c5 { background: #fff1c2; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .tile.c1, :root:not([data-theme="light"]) .tile.c2,
+    :root:not([data-theme="light"]) .tile.c3, :root:not([data-theme="light"]) .tile.c4,
+    :root:not([data-theme="light"]) .tile.c5 { background: var(--card); }
+  }
+  .letter-tile .emo { font-size: 56px; font-weight: 900; color: var(--purple); font-family: system-ui, sans-serif; }
+  .tile small { font-size: 15px; color: var(--muted); font-weight: normal; }
+
+  /* Practice card */
+  .card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 20px; text-align: center; position: relative;
+  }
+  .picture { font-size: clamp(120px, 34vw, 200px); line-height: 1.1; cursor: pointer; display: inline-block; }
+  .picture.wiggle { animation: wiggle .5s; }
+  @keyframes wiggle { 25% { transform: rotate(-8deg) scale(1.05);} 75% { transform: rotate(8deg) scale(1.05);} }
+  .word { font-size: clamp(38px, 10vw, 64px); font-weight: bold; letter-spacing: 2px; margin: 4px 0 10px; }
+  .word b { color: var(--pink); }
+  .instr { font-size: clamp(20px, 5vw, 28px); margin: 6px 0 14px; }
+  .muted { color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
+  .big-btn {
+    border-radius: 999px; padding: 16px 22px; font-size: 24px; font-weight: bold;
+    box-shadow: var(--shadow); background: var(--card); min-width: 64px;
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  }
+  .big-btn.listen { background: var(--blue); color: #fff; }
+  .big-btn.rec { background: var(--pink); color: #fff; }
+  .big-btn.rec.on { animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { transform: scale(1.08); } }
+  .big-btn.play { background: var(--purple); color: #fff; }
+  .big-btn.good { background: var(--green); color: #fff; font-size: 28px; padding: 18px 28px; }
+  .big-btn[disabled] { opacity: .35; }
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 12px; }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; background: #e2d6cc; }
+  .dot.on { background: var(--orange); }
+  .dot.done { background: var(--green); }
+
+  .tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .tab { border-radius: 999px; padding: 10px 16px; font-size: 18px; font-weight: bold; background: var(--card); box-shadow: var(--shadow); }
+  .tab.on { background: var(--orange); color: #fff; }
+
+  /* Gym counter */
+  .counter { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
+  .counter span { width: 38px; height: 38px; border-radius: 50%; background: #eee3d8; display: grid; place-items: center; font-size: 20px; transition: transform .2s; }
+  .counter span.hit { background: var(--yellow); transform: scale(1.15); }
+
+  /* Blow game */
+  .cake { font-size: 110px; line-height: 1; }
+  .candles { display: flex; justify-content: center; gap: 4px; font-size: 44px; min-height: 80px; }
+  .candle { transition: opacity .4s, transform .4s; display: flex; flex-direction: column; align-items: center; }
+  .candle .flame { animation: flicker .3s infinite alternate; display: block; height: 40px; font-size: 36px; }
+  .candle.out .flame { opacity: 0; transform: translateY(-30px) scale(.4); transition: all .5s; }
+  @keyframes flicker { to { transform: scale(1.12) rotate(4deg); } }
+  .meter { height: 26px; border-radius: 999px; background: #eee3d8; overflow: hidden; margin: 16px auto; max-width: 420px; }
+  .meter > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .08s; }
+
+  /* Album */
+  .album { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
+  .sticker { aspect-ratio: 1; border-radius: 22px; background: var(--card); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 48px; }
+  .sticker.locked { filter: grayscale(1); opacity: .25; }
+
+  /* Parent */
+  .parent label { display: flex; align-items: center; gap: 10px; font-size: 20px; padding: 8px 0; }
+  .parent input[type=checkbox] { width: 28px; height: 28px; }
+  .parent .section { text-align: left; margin-bottom: 16px; }
+  .parent h3 { margin: 0 0 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { border-radius: 14px; padding: 10px 14px; background: var(--bg); font-size: 22px; font-weight: bold; display: flex; gap: 6px; align-items: center; }
+  .note { font-size: 16px; line-height: 1.45; }
+
+  /* Celebrate */
+  .burst { position: fixed; pointer-events: none; font-size: 40px; z-index: 50; animation: fly 1.2s ease-out forwards; }
+  @keyframes fly { to { transform: translate(var(--dx), var(--dy)) rotate(360deg); opacity: 0; } }
+  .toast {
+    position: fixed; left: 50%; top: 30%; transform: translate(-50%, -50%) scale(0);
+    background: var(--card); border-radius: 32px; box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    padding: 24px 32px; font-size: 34px; font-weight: bold; z-index: 60; text-align: center; transition: transform .25s;
+    max-width: calc(100vw - 32px);
+  }
+  .toast.show { transform: translate(-50%, -50%) scale(1); }
+  .toast .big { font-size: 80px; display: block; }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<section class="screen active" id="home">
+  <header class="bar">
+    <span class="stars-pill" id="starCount">⭐ 0</span>
+    <span style="flex:1"></span>
+    <button class="icon-btn" data-go="parent" aria-label="Pre rodičov">⚙️</button>
+  </header>
+  <div class="hello">
+    <div class="mascot">🦊</div>
+    <h1>Hovorílko</h1>
+    <div class="instr muted">Poď sa so mnou hrať s jazýčkom!</div>
+  </div>
+  <div class="grid">
+    <button class="tile c1" data-go="gym"><span class="emo">👅</span>Rozcvička</button>
+    <button class="tile c2" data-go="blow"><span class="emo">🎂</span>Fúkanie</button>
+    <button class="tile c3" data-go="sounds"><span class="emo">🗣️</span>Hlásky</button>
+    <button class="tile c4" data-go="album"><span class="emo">🎁</span>Nálepky</button>
+  </div>
+</section>
+
+<!-- GYM LIST -->
+<section class="screen" id="gym">
+  <header class="bar">
+    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
+    <h1>Rozcvička jazýčka</h1>
+    <span class="stars-pill js-stars">⭐ 0</span>
+  </header>
+  <div class="grid" id="gymGrid"></div>
+</section>
+
+<!-- GYM EXERCISE -->
+<section class="screen" id="gymEx">
+  <header class="bar">
+    <button class="icon-btn" data-go="gym" aria-label="Späť">⬅️</button>
+    <h1 id="gymTitle"></h1>
+    <span class="stars-pill js-stars">⭐ 0</span>
+  </header>
+  <div class="card">
+    <div class="picture" id="gymPic"></div>
+    <div class="instr" id="gymInstr"></div>
+    <div class="counter" id="gymCounter"></div>
+    <div class="actions">
+      <button class="big-btn listen" id="gymListen">🔊 Počúvaj</button>
+      <button class="big-btn good" id="gymTap">👆 Raz!</button>
+    </div>
+    <div class="muted" style="margin-top:12px">Ťukni na „Raz!“ po každom opakovaní.</div>
+  </div>
+</section>
+
+<!-- BLOW -->
+<section class="screen" id="blow">
+  <header class="bar">
+    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
+    <h1>Sfúkni sviečky</h1>
+    <span class="stars-pill js-stars">⭐ 0</span>
+  </header>
+  <div class="card">
+    <div class="candles" id="candles"></div>
+    <div class="cake">🎂</div>
+    <div class="instr" id="blowInstr">Nadýchni sa nosom a silno fúkni ústami!</div>
+    <div class="meter"><div id="blowMeter"></div></div>
+    <div class="actions">
+      <button class="big-btn listen" id="blowMic">🎤 Zapni mikrofón</button>
+      <button class="big-btn" id="blowTap">💨 Fú!</button>
+      <button class="big-btn" id="blowReset">🔄 Znova</button>
+    </div>
+    <div class="muted" style="margin-top:12px" id="blowHint">S mikrofónom sviečky zhasnú, keď fúkneš. Bez neho ťukni na „Fú!“.</div>
+  </div>
+</section>
+
+<!-- SOUND PICKER -->
+<section class="screen" id="sounds">
+  <header class="bar">
+    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
+    <h1>Vyber si hlásku</h1>
+    <span class="stars-pill js-stars">⭐ 0</span>
+  </header>
+  <div class="grid" id="soundGrid"></div>
+</section>
+
+<!-- SOUND PRACTICE -->
+<section class="screen" id="practice">
+  <header class="bar">
+    <button class="icon-btn" data-go="sounds" aria-label="Späť">⬅️</button>
+    <h1 id="practiceTitle"></h1>
+    <span class="stars-pill js-stars">⭐ 0</span>
+  </header>
+  <div class="tabs" id="practiceTabs"></div>
+  <div class="card">
+    <div class="picture" id="pPic"></div>
+    <div class="word" id="pWord"></div>
+    <div class="instr muted" id="pHint"></div>
+    <div class="actions">
+      <button class="big-btn listen" id="pListen">🔊</button>
+      <button class="big-btn rec" id="pRec">🎤</button>
+      <button class="big-btn play" id="pPlay" disabled>▶️</button>
+    </div>
+    <div class="actions">
+      <button class="big-btn good" id="pGood">⭐ Podarilo sa!</button>
+    </div>
+    <div class="nav-row">
+      <button class="icon-btn" id="pPrev" aria-label="Predchádzajúce">◀️</button>
+      <div class="dots" id="pDots"></div>
+      <button class="icon-btn" id="pNext" aria-label="Ďalšie">▶️</button>
+    </div>
+  </div>
+</section>
+
+<!-- ALBUM -->
+<section class="screen" id="album">
+  <header class="bar">
+    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
+    <h1>Moje nálepky</h1>
+    <span class="stars-pill js-stars">⭐ 0</span>
+  </header>
+  <div class="card" style="margin-bottom:16px">
+    <div class="instr" id="albumInfo"></div>
+  </div>
+  <div class="album" id="albumGrid"></div>
+</section>
+
+<!-- PARENT -->
+<section class="screen parent" id="parent">
+  <header class="bar">
+    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
+    <h1>Pre rodičov</h1>
+  </header>
+  <div class="card section">
+    <h3>Ktoré hlásky trénujeme?</h3>
+    <p class="note muted">Zobrazia sa iba vybrané hlásky. Odporúčame tie, ktoré odporučila logopédka.</p>
+    <div class="chips" id="parentSounds"></div>
+  </div>
+  <div class="card section">
+    <h3>Prehľad</h3>
+    <div class="note" id="parentStats"></div>
+  </div>
+  <div class="card section">
+    <h3>Hlas</h3>
+    <p class="note" id="voiceInfo"></p>
+    <label><input type="checkbox" id="optSlow" checked> Hovoriť pomalšie</label>
+    <button class="big-btn" id="testVoice">🔊 Vyskúšať hlas</button>
+  </div>
+  <div class="card section">
+    <h3>Tipy</h3>
+    <ul class="note">
+      <li>Cvičte krátko, ale často: 5–10 minút denne stačí.</li>
+      <li>Rozcvičku jazýčka robte pred zrkadlom, dieťa vidí, čo robí.</li>
+      <li>Najprv hláska sama, potom slabiky, potom slová (začiatok → koniec → stred).</li>
+      <li>Hviezdičku dávajte za snahu, nie iba za dokonalý výsledok.</li>
+      <li>Nahrávanie a prehrávanie pomáha dieťaťu počuť samého seba.</li>
+      <li>Aplikácia logopéda nenahrádza, len pomáha pri domácom precvičovaní.</li>
+    </ul>
+  </div>
+  <div class="card section">
+    <h3>Vynulovať</h3>
+    <button class="big-btn" id="resetAll">🗑️ Vymazať hviezdičky a nálepky</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== DATA ===================== */
+
+const GYM = [
+  { id:'konik',   emo:'🐴', name:'Koníček',   say:'Koníček klope kopýtkami. Mľaskaj jazýčkom o podnebie: klap, klap!', reps:10 },
+  { id:'hodinky', emo:'⏰', name:'Hodinky',   say:'Otvor ústa a pohybuj jazýčkom z jedného kútika do druhého: tik, tak!', reps:10 },
+  { id:'hojdacka',emo:'🎢', name:'Hojdačka',  say:'Vystrč jazýček hore k nosu a potom dole k brade.', reps:8 },
+  { id:'maliar',  emo:'🖌️', name:'Maliar',    say:'Jazýček je štetec. Natri podnebie odpredu až dozadu.', reps:8 },
+  { id:'zmrzlina',emo:'🍦', name:'Zmrzlina',  say:'Oblízni si pery dookola, ako keď ješ zmrzlinu.', reps:6 },
+  { id:'zubar',   emo:'🦷', name:'Zubár',     say:'Jazýčkom spočítaj všetky zúbky hore aj dole.', reps:4 },
+  { id:'hadik',   emo:'🐍', name:'Hadík',     say:'Hadík vystrčí jazýček z úst a rýchlo ho schová.', reps:10 },
+  { id:'usmev',   emo:'😁', name:'Úsmev a pusa', say:'Usmej sa široko a potom urob pusinku.', reps:8 },
+  { id:'balon',   emo:'🎈', name:'Balónik',   say:'Nafúkni líčka ako balónik a potom ich pomaly vyfúkni.', reps:6 },
+  { id:'rybka',   emo:'🐟', name:'Rybka',     say:'Rybka otvára a zatvára ústočká bez zvuku.', reps:8 },
+  { id:'lopatka', emo:'🥄', name:'Lopatka a ihla', say:'Vyplaz široký jazýček ako lopatku a potom úzky ako ihlu.', reps:6 },
+  { id:'kohutik', emo:'🐓', name:'Kohútik',   say:'Jazýček sa schová za horné zúbky a skáče: tra-la-la!', reps:8 },
+];
+
+// Words: [word, emoji]. The target sound is highlighted automatically.
+const SOUNDS = [
+  { id:'R', label:'R', emo:'🏍️', solo:'Rrrrrr', soloText:'Motorka robí rrrrr', speakSolo:'rrrrrrr',
+    syl:['ra','ro','ru','re','ri','ar','or','ur','er','ir','tra','dra','kra','bra'],
+    start:[['ryba','🐟'],['ruka','✋'],['raketa','🚀'],['ruža','🌹'],['robot','🤖'],['rádio','📻']],
+    mid:[['koruna','👑'],['mrkva','🥕'],['žirafa','🦒'],['hruška','🍐'],['baran','🐏'],['okuliare','👓']],
+    end:[['syr','🧀'],['tiger','🐯'],['kufor','🧳'],['traktor','🚜'],['papier','📄'],['kocúr','🐈']] },
+  { id:'L', label:'L', emo:'🎵', solo:'La-la-la', soloText:'Spievame la-la-la', speakSolo:'la la la',
+    syl:['la','lo','lu','le','li','al','ol','ul','el','il','bla','kla','pla','sla'],
+    start:[['lopta','⚽'],['lev','🦁'],['loď','🚢'],['lyžica','🥄'],['lienka','🐞'],['list','🍃']],
+    mid:[['jablko','🍎'],['slimák','🐌'],['mlieko','🥛'],['balón','🎈'],['delfín','🐬'],['klobúk','🎩']],
+    end:[['orol','🦅'],['bicykel','🚲'],['anjel','👼'],['tunel','🚇']] },
+  { id:'S', label:'S', emo:'🐍', solo:'Sssss', soloText:'Hadík syčí sssss', speakSolo:'sssssss',
+    syl:['sa','so','su','se','si','as','os','us','es','is'],
+    start:[['slnko','☀️'],['sova','🦉'],['slon','🐘'],['srdce','❤️'],['sneh','❄️'],['syr','🧀']],
+    mid:[['husa','🪿'],['misa','🥣'],['pastelka','🖍️'],['basa','🎻']],
+    end:[['pes','🐕'],['nos','👃'],['autobus','🚌'],['ananás','🍍'],['kaktus','🌵'],['les','🌲']] },
+  { id:'Z', label:'Z', emo:'🦟', solo:'Zzzzz', soloText:'Komárik bzučí zzzzz', speakSolo:'zzzzzzz',
+    syl:['za','zo','zu','ze','zi','az','oz','uz','ez','iz'],
+    start:[['zebra','🦓'],['zuby','🦷'],['zajac','🐰'],['zámok','🏰'],['zemiak','🥔'],['zvonček','🔔']],
+    mid:[['koza','🐐'],['váza','🏺'],['jazyk','👅'],['mozog','🧠']],
+    end:[] },
+  { id:'C', label:'C', emo:'🦗', solo:'Ccccc', soloText:'Cvrček cvrčí cccc', speakSolo:'cccccc',
+    syl:['ca','co','cu','ce','ci','ac','oc','uc','ec','ic'],
+    start:[['cibuľa','🧅'],['citrón','🍋'],['cukrík','🍬'],['cyklista','🚴'],['cesta','🛣️']],
+    mid:[['ovca','🐑'],['vajce','🥚'],['opica','🐒'],['palacinka','🥞'],['srdce','❤️']],
+    end:[['palec','👍'],['zajac','🐰'],['chlapec','👦'],['tanec','💃'],['kopec','⛰️']] },
+  { id:'Š', label:'Š', emo:'🚂', solo:'Šššššš', soloText:'Vláčik robí šššš', speakSolo:'šššššš',
+    syl:['ša','šo','šu','še','ši','aš','oš','uš','eš','iš'],
+    start:[['šašo','🤡'],['šaty','👗'],['šiška','🌲'],['šálka','☕'],['šach','♟️'],['šarkan','🪁']],
+    mid:[['myška','🐭'],['mašľa','🎀'],['hruška','🍐'],['taška','👜'],['kaša','🥣']],
+    end:[['myš','🐁'],['kôš','🧺'],['guláš','🍲']] },
+  { id:'Ž', label:'Ž', emo:'🪲', solo:'Žžžžž', soloText:'Chrobáčik bzučí žžžž', speakSolo:'žžžžžž',
+    syl:['ža','žo','žu','že','ži','až','ož','už','ež','iž'],
+    start:[['žaba','🐸'],['žirafa','🦒'],['žena','👩'],['žeriav','🏗️'],['žltá','💛']],
+    mid:[['ruža','🌹'],['lyže','🎿'],['lyžica','🥄'],['ježko','🦔']],
+    end:[['jež','🦔'],['nôž','🔪'],['garáž','🏠']] },
+  { id:'Č', label:'Č', emo:'🐤', solo:'Čiv-čiv', soloText:'Vtáčik spieva čiv-čiv', speakSolo:'čiv čiv',
+    syl:['ča','čo','ču','če','či','ač','oč','uč','eč','ič'],
+    start:[['čaj','🍵'],['čiapka','🧢'],['čerešne','🍒'],['čokoláda','🍫'],['čarodejník','🧙'],['čln','🛶']],
+    mid:[['mačka','🐱'],['hračka','🧸'],['včela','🐝'],['pečivo','🥐'],['očko','👁️']],
+    end:[['kľúč','🔑'],['meč','🗡️'],['koláč','🥧']] },
+  { id:'K', label:'K', emo:'🐓', solo:'Kikirikí', soloText:'Kohút volá kikirikí', speakSolo:'kikirikí',
+    syl:['ka','ko','ku','ke','ki','ak','ok','uk','ek','ik'],
+    start:[['kniha','📚'],['kocka','🎲'],['koník','🐴'],['krava','🐄'],['kohút','🐓'],['kľúč','🔑']],
+    mid:[['jablko','🍎'],['rukavice','🧤'],['okuliare','👓'],['mlieko','🥛']],
+    end:[['vlak','🚂'],['jazyk','👅'],['slimák','🐌'],['zámok','🏰'],['mak','🌺']] },
+];
+
+const STICKERS = ['🦄','🐶','🐱','🐼','🦁','🐸','🐵','🦋','🐬','🦖','🐙','🦒','🐧','🐨','🦉','🐢','🌈','🚀','🍓','🍩','🎈','🏰','👑','🧁','🌻','🐳','🦜','🍉','🎠','⭐'];
+const STARS_PER_STICKER = 5;
+
+/* ===================== STATE ===================== */
+
+const STORE_KEY = 'hovorilko-v1';
+const defaultState = { stars: 0, enabled: SOUNDS.map(s => s.id), slow: true, log: {} };
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return Object.assign({}, defaultState, JSON.parse(raw));
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(defaultState));
+}
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+function logStar(kind) {
+  const d = today();
+  state.log[d] = state.log[d] || {};
+  state.log[d][kind] = (state.log[d][kind] || 0) + 1;
+}
+
+/* ===================== HELPERS ===================== */
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+
+function go(id) {
+  stopMic();
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+  window.scrollTo(0, 0);
+  if (screens[id]) screens[id]();
+  updateStars();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]');
+  if (t) go(t.dataset.go);
+});
+
+function updateStars() {
+  const txt = '⭐ ' + state.stars;
+  $('starCount').textContent = txt;
+  document.querySelectorAll('.js-stars').forEach(e => e.textContent = txt);
+}
+
+function addStar(kind, originEl) {
+  const before = Math.floor(state.stars / STARS_PER_STICKER);
+  state.stars++;
+  logStar(kind);
+  saveState();
+  updateStars();
+  burst(originEl);
+  const after = Math.floor(state.stars / STARS_PER_STICKER);
+  if (after > before && after <= STICKERS.length) {
+    setTimeout(() => toast('<span class="big">' + STICKERS[after - 1] + '</span>Nová nálepka!', 2200), 500);
+    speak('Výborne! Máš novú nálepku!');
+  } else {
+    const praise = ['Super!', 'Výborne!', 'Paráda!', 'Si šikulka!', 'Skvelé!', 'Bravó!'];
+    const p = praise[Math.floor(Math.random() * praise.length)];
+    toast('<span class="big">⭐</span>' + p, 1100);
+  }
+}
+
+function burst(originEl) {
+  const r = originEl ? originEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const items = ['⭐','✨','🌟','💛','🎉'];
+  for (let i = 0; i < 14; i++) {
+    const s = el('div', 'burst', items[i % items.length]);
+    s.style.left = cx + 'px'; s.style.top = cy + 'px';
+    const a = Math.random() * Math.PI * 2, d = 120 + Math.random() * 160;
+    s.style.setProperty('--dx', Math.cos(a) * d + 'px');
+    s.style.setProperty('--dy', Math.sin(a) * d + 'px');
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1300);
+  }
+}
+
+let toastTimer;
+function toast(html, ms) {
+  const t = $('toast');
+  t.innerHTML = html; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), ms || 1200);
+}
+
+/* ===================== SPEECH ===================== */
+
+let voice = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => /^sk/i.test(v.lang)) || vs.find(v => /^cs/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+function speak(text) {
+  if (!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = voice ? voice.lang : 'sk-SK';
+  if (voice) u.voice = voice;
+  u.rate = state.slow ? 0.75 : 0.95;
+  u.pitch = 1.1;
+  speechSynthesis.speak(u);
+}
+
+/* ===================== MICROPHONE ===================== */
+
+let micStream = null, audioCtx = null, rafId = null;
+function stopMic() {
+  if (rafId) cancelAnimationFrame(rafId), rafId = null;
+  if (micStream) micStream.getTracks().forEach(t => t.stop()), micStream = null;
+  if (audioCtx) { audioCtx.close().catch(()=>{}); audioCtx = null; }
+  if (recorder && recorder.state === 'recording') recorder.stop();
+  const b = $('blowMic'); if (b) b.textContent = '🎤 Zapni mikrofón';
+}
+async function getMic() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('nomic');
+  return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+}
+
+/* ===================== SCREENS ===================== */
+
+const screens = {};
+
+/* --- Gym --- */
+screens.gym = () => {
+  const g = $('gymGrid'); g.innerHTML = '';
+  GYM.forEach((ex, i) => {
+    const b = el('button', 'tile c' + (i % 5 + 1), `<span class="emo">${ex.emo}</span>${ex.name}`);
+    b.onclick = () => openGym(ex);
+    g.appendChild(b);
+  });
+};
+let gymCur = null, gymCount = 0;
+function openGym(ex) {
+  gymCur = ex; gymCount = 0;
+  go('gymEx');
+  $('gymTitle').textContent = ex.name;
+  $('gymPic').textContent = ex.emo;
+  $('gymInstr').textContent = ex.say;
+  renderGymCounter();
+  speak(ex.say);
+}
+function renderGymCounter() {
+  const c = $('gymCounter'); c.innerHTML = '';
+  for (let i = 0; i < gymCur.reps; i++) {
+    const s = el('span', i < gymCount ? 'hit' : '', i < gymCount ? '⭐' : String(i + 1));
+    c.appendChild(s);
+  }
+}
+$('gymListen').onclick = () => gymCur && speak(gymCur.say);
+$('gymPic').onclick = () => { wiggle($('gymPic')); gymCur && speak(gymCur.say); };
+$('gymTap').onclick = (e) => {
+  if (!gymCur || gymCount >= gymCur.reps) return;
+  gymCount++;
+  renderGymCounter();
+  wiggle($('gymPic'));
+  if (gymCount === gymCur.reps) {
+    addStar('gym', e.currentTarget);
+    setTimeout(() => go('gym'), 1600);
+  } else {
+    speak(String(gymCount));
+  }
+};
+function wiggle(e) { e.classList.remove('wiggle'); void e.offsetWidth; e.classList.add('wiggle'); }
+
+/* --- Blow --- */
+const CANDLES = 5;
+let candlesLeft = CANDLES, blowCooldown = false;
+screens.blow = () => resetCandles();
+function resetCandles() {
+  candlesLeft = CANDLES;
+  const c = $('candles'); c.innerHTML = '';
+  for (let i = 0; i < CANDLES; i++) c.appendChild(el('div', 'candle', '<span class="flame">🔥</span><span>🕯️</span>'));
+  $('blowInstr').textContent = 'Nadýchni sa nosom a silno fúkni ústami!';
+  $('blowMeter').style.width = '0%';
+}
+function blowOne() {
+  if (candlesLeft <= 0 || blowCooldown) return;
+  blowCooldown = true; setTimeout(() => blowCooldown = false, 700);
+  const lit = [...document.querySelectorAll('.candle:not(.out)')];
+  lit[lit.length - 1].classList.add('out');
+  candlesLeft--;
+  if (candlesLeft === 0) {
+    $('blowInstr').textContent = 'Všetky sviečky sú sfúknuté! 🎉';
+    addStar('blow', $('candles'));
+    speak('Hurá! Všetko najlepšie!');
+    stopMic();
+  }
+}
+$('blowTap').onclick = blowOne;
+$('blowReset').onclick = resetCandles;
+$('blowMic').onclick = async () => {
+  if (micStream) { stopMic(); return; }
+  try {
+    micStream = await getMic();
+  } catch (e) {
+    $('blowHint').textContent = 'Mikrofón nie je dostupný. Ťukaj na „Fú!“ po každom fúknutí.';
+    return;
+  }
+  $('blowMic').textContent = '⏹️ Vypni mikrofón';
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = audioCtx.createMediaStreamSource(micStream);
+  const an = audioCtx.createAnalyser(); an.fftSize = 1024;
+  src.connect(an);
+  const buf = new Float32Array(an.fftSize);
+  let loudFrames = 0;
+  const loop = () => {
+    an.getFloatTimeDomainData(buf);
+    let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    const rms = Math.sqrt(sum / buf.length);
+    const level = Math.min(1, rms * 6);
+    $('blowMeter').style.width = (level * 100).toFixed(0) + '%';
+    // A blow is a sustained loud noise (~ 0.25 s).
+    if (level > 0.55) loudFrames++; else loudFrames = Math.max(0, loudFrames - 2);
+    if (loudFrames > 15) { blowOne(); loudFrames = 0; }
+    rafId = requestAnimationFrame(loop);
+  };
+  loop();
+};
+
+/* --- Sound picker --- */
+screens.sounds = () => {
+  const g = $('soundGrid'); g.innerHTML = '';
+  const list = SOUNDS.filter(s => state.enabled.includes(s.id));
+  if (!list.length) g.innerHTML = '<div class="card instr">Rodič zatiaľ nevybral žiadnu hlásku ⚙️</div>';
+  list.forEach((s, i) => {
+    const b = el('button', 'tile letter-tile c' + (i % 5 + 1), `<span class="emo">${s.label}</span><span>${s.emo}</span>`);
+    b.onclick = () => openSound(s);
+    g.appendChild(b);
+  });
+};
+
+/* --- Practice --- */
+let cur = null, mode = 'solo', idx = 0, items = [], doneSet = new Set();
+const MODES = [
+  { id:'solo',  label:'Hláska' },
+  { id:'syl',   label:'Slabiky' },
+  { id:'start', label:'Na začiatku' },
+  { id:'end',   label:'Na konci' },
+  { id:'mid',   label:'V strede' },
+];
+function openSound(s) {
+  cur = s;
+  go('practice');
+  $('practiceTitle').textContent = 'Hláska ' + s.label;
+  setMode('solo');
+}
+function setMode(m) {
+  mode = m; idx = 0; doneSet = new Set(); clearRecording();
+  const tabs = $('practiceTabs'); tabs.innerHTML = '';
+  MODES.forEach(md => {
+    if (md.id !== 'solo' && md.id !== 'syl' && !cur[md.id].length) return;
+    const t = el('button', 'tab' + (md.id === m ? ' on' : ''), md.label);
+    t.onclick = () => setMode(md.id);
+    tabs.appendChild(t);
+  });
+  if (m === 'solo') items = [{ word: cur.solo, emo: cur.emo, hint: cur.soloText, speak: cur.speakSolo, plain: true }];
+  else if (m === 'syl') items = cur.syl.map(x => ({ word: x.toUpperCase(), emo: cur.emo, hint: 'Povedz slabiku', speak: x, syl: true }));
+  else items = cur[m].map(([w, e]) => ({ word: w, emo: e, hint: '', speak: w }));
+  renderItem();
+}
+function highlight(word, letter) {
+  // Highlight the target letter(s) in the word (case-insensitive).
+  const lower = letter.toLowerCase();
+  let out = '';
+  for (const ch of word) out += ch.toLowerCase() === lower ? `<b>${ch}</b>` : ch;
+  return out;
+}
+function renderItem() {
+  const it = items[idx];
+  $('pPic').textContent = it.emo;
+  $('pWord').innerHTML = it.plain ? `<b>${it.word}</b>` : highlight(it.word, cur.label);
+  $('pHint').textContent = it.hint || 'Pozri sa na obrázok a povedz, čo to je.';
+  const d = $('pDots'); d.innerHTML = '';
+  items.forEach((_, i) => d.appendChild(el('span', 'dot' + (i === idx ? ' on' : doneSet.has(i) ? ' done' : ''))));
+  $('pPrev').style.visibility = idx > 0 ? 'visible' : 'hidden';
+  $('pNext').style.visibility = idx < items.length - 1 ? 'visible' : 'hidden';
+  clearRecording();
+}
+function sayCurrent() { const it = items[idx]; wiggle($('pPic')); speak(it.plain ? it.speak : it.speak); }
+$('pListen').onclick = sayCurrent;
+$('pPic').onclick = sayCurrent;
+$('pPrev').onclick = () => { if (idx > 0) { idx--; renderItem(); } };
+$('pNext').onclick = () => { if (idx < items.length - 1) { idx++; renderItem(); } };
+$('pGood').onclick = (e) => {
+  addStar('sound-' + cur.id, e.currentTarget);
+  doneSet.add(idx);
+  setTimeout(() => {
+    if (idx < items.length - 1) { idx++; renderItem(); }
+    else {
+      renderItem();
+      // Move to the next exercise type when this one is finished.
+      const visible = [...document.querySelectorAll('#practiceTabs .tab')];
+      const pos = visible.findIndex(t => t.classList.contains('on'));
+      if (pos < visible.length - 1) {
+        toast('<span class="big">🏆</span>Hotovo! Ideme ďalej', 1500);
+        setTimeout(() => visible[pos + 1].click(), 1500);
+      } else {
+        toast('<span class="big">🏆</span>Celú hlásku ' + cur.label + ' máš hotovú!', 2500);
+        speak('Úžasné! Hlásku ' + cur.label + ' máš hotovú!');
+      }
+    }
+  }, 900);
+};
+
+/* Recording */
+let recorder = null, recChunks = [], recUrl = null, recAudio = null;
+function clearRecording() {
+  if (recUrl) URL.revokeObjectURL(recUrl);
+  recUrl = null;
+  $('pPlay').disabled = true;
+}
+$('pRec').onclick = async () => {
+  const btn = $('pRec');
+  if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+  if (typeof MediaRecorder === 'undefined') { toast('Nahrávanie tu nefunguje 😕', 1500); return; }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) { toast('Mikrofón nie je povolený 🎤', 1500); return; }
+  recChunks = [];
+  recorder = new MediaRecorder(micStream);
+  recorder.ondataavailable = ev => ev.data.size && recChunks.push(ev.data);
+  recorder.onstop = () => {
+    btn.classList.remove('on'); btn.textContent = '🎤';
+    if (micStream) micStream.getTracks().forEach(t => t.stop()), micStream = null;
+    if (!recChunks.length) return;
+    clearRecording();
+    recUrl = URL.createObjectURL(new Blob(recChunks, { type: recorder.mimeType || 'audio/webm' }));
+    $('pPlay').disabled = false;
+    playRecording();
+  };
+  recorder.start();
+  btn.classList.add('on'); btn.textContent = '⏹️';
+  // Auto-stop after 4 seconds so a child doesn't have to remember.
+  setTimeout(() => { if (recorder && recorder.state === 'recording') recorder.stop(); }, 4000);
+};
+function playRecording() {
+  if (!recUrl) return;
+  if (recAudio) recAudio.pause();
+  recAudio = new Audio(recUrl);
+  recAudio.play().catch(() => {});
+}
+$('pPlay').onclick = playRecording;
+
+/* --- Album --- */
+screens.album = () => {
+  const got = Math.min(STICKERS.length, Math.floor(state.stars / STARS_PER_STICKER));
+  const toNext = STARS_PER_STICKER - (state.stars % STARS_PER_STICKER);
+  $('albumInfo').innerHTML = got >= STICKERS.length
+    ? 'Máš všetky nálepky! 🏆'
+    : `Máš <b>${got}</b> ${got === 1 ? 'nálepku' : got >= 2 && got <= 4 ? 'nálepky' : 'nálepiek'}. Ešte <b>${toNext}</b> ⭐ do ďalšej!`;
+  const g = $('albumGrid'); g.innerHTML = '';
+  STICKERS.forEach((s, i) => g.appendChild(el('div', 'sticker' + (i < got ? '' : ' locked'), i < got ? s : '❔')));
+};
+
+/* --- Parent --- */
+screens.parent = () => {
+  const c = $('parentSounds'); c.innerHTML = '';
+  SOUNDS.forEach(s => {
+    const lab = el('label', 'chip');
+    const cb = el('input'); cb.type = 'checkbox'; cb.checked = state.enabled.includes(s.id);
+    cb.onchange = () => {
+      state.enabled = cb.checked ? [...new Set([...state.enabled, s.id])] : state.enabled.filter(x => x !== s.id);
+      saveState();
+    };
+    lab.appendChild(cb); lab.appendChild(document.createTextNode(s.label));
+    c.appendChild(lab);
+  });
+  $('optSlow').checked = state.slow;
+
+  const days = Object.keys(state.log).sort().reverse().slice(0, 7);
+  const nameOf = k => k === 'gym' ? 'rozcvička' : k === 'blow' ? 'fúkanie' : 'hláska ' + k.replace('sound-', '');
+  $('parentStats').innerHTML = `Spolu hviezdičiek: <b>${state.stars}</b><br>` + (days.length
+    ? '<ul>' + days.map(d => {
+        const parts = Object.entries(state.log[d]).map(([k, v]) => `${nameOf(k)}: ${v}`).join(', ');
+        return `<li><b>${d.split('-').reverse().join('.')}</b> – ${parts}</li>`;
+      }).join('') + '</ul>'
+    : '<span class="muted">Zatiaľ žiadne cvičenie.</span>');
+
+  pickVoice();
+  $('voiceInfo').innerHTML = !('speechSynthesis' in window)
+    ? 'Tento prehliadač nevie čítať nahlas. Slová čítajte dieťaťu vy.'
+    : voice
+      ? `Používam hlas: <b>${voice.name}</b> (${voice.lang}).`
+      : 'Slovenský hlas sa nenašiel. Výslovnosť môže byť nesprávna. Na iPhone/iPade: Nastavenia → Prístupnosť → Hovorený obsah → Hlasy → Slovenčina. Na Androide: Nastavenia → Prevod textu na reč → Google → nainštalovať slovenčinu.';
+};
+$('optSlow').onchange = e => { state.slow = e.target.checked; saveState(); };
+$('testVoice').onclick = () => speak('Ahoj! Ja som líška Hovorílko. Poďme sa spolu hrať.');
+$('resetAll').onclick = () => {
+  if (!confirm('Naozaj vymazať všetky hviezdičky, nálepky a prehľad?')) return;
+  state.stars = 0; state.log = {}; saveState(); screens.parent(); updateStars();
+};
+
+/* ===================== START ===================== */
+updateStars();
+document.querySelector('.mascot').onclick = () => speak('Ahoj! Ja som líška Hovorílko. Vyber si hru!');
+</script>
+</body>
+</html>
