@@ -1,791 +1,778 @@
 <!doctype html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#ffb84d">
-<title>Hovorílko</title>
+<meta name="theme-color" content="#3a0f2e">
+<title>Story Stage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #fff7e6;
-    --card: #ffffff;
-    --ink: #3b2f2f;
-    --muted: #8a7a70;
-    --orange: #ff9f1c;
-    --pink: #ff6b9a;
-    --blue: #4cc9f0;
-    --green: #52c41a;
-    --purple: #9b5de5;
-    --yellow: #ffd23f;
-    --shadow: 0 6px 0 rgba(0,0,0,.12);
-    --radius: 28px;
+    --velvet: #8e1b3a;
+    --velvet-dark: #4a0b20;
+    --night: #2a0c24;
+    --gold: #f6c453;
+    --gold-dark: #c98d1a;
+    --parchment: #fff5dc;
+    --ink: #4a2a1a;
+    --cream: #fff9ee;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --bg:#2a2233; --card:#3a3045; --ink:#fff4e8; --muted:#c9b8d6; }
-  }
-  :root[data-theme="dark"] { --bg:#2a2233; --card:#3a3045; --ink:#fff4e8; --muted:#c9b8d6; }
-
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; }
   body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: "Comic Sans MS", "Chalkboard SE", "Baloo 2", system-ui, sans-serif;
+    background: radial-gradient(ellipse at top, #5a1840 0%, var(--night) 70%);
+    color: var(--cream);
+    font-family: "Fredoka", "Comic Sans MS", system-ui, sans-serif;
     user-select: none; -webkit-user-select: none;
-    overflow-x: hidden;
+    overflow: hidden;
   }
-  button { font-family: inherit; color: inherit; cursor: pointer; border: 0; }
+  button { font-family: inherit; cursor: pointer; border: 0; color: inherit; background: none; }
+  .screen { display: none; height: 100dvh; height: 100vh; }
+  @supports (height: 100dvh) { .screen { height: 100dvh; } }
+  .screen.active { display: flex; flex-direction: column; }
 
-  .screen { display: none; min-height: 100%; padding: 16px; padding-bottom: 40px; max-width: 900px; margin: 0 auto; }
-  .screen.active { display: block; animation: pop .25s ease-out; }
-  @keyframes pop { from { transform: scale(.97); opacity: 0; } to { transform: none; opacity: 1; } }
-
-  header.bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-  header.bar h1 { flex: 1; margin: 0; font-size: clamp(22px, 5vw, 34px); text-align: center; }
-  .icon-btn {
-    width: 64px; height: 64px; border-radius: 50%; font-size: 32px;
-    background: var(--card); box-shadow: var(--shadow); flex-shrink: 0;
+  /* ---------- Home ---------- */
+  #home { align-items: center; padding: 20px 16px; overflow-y: auto; }
+  .marquee { text-align: center; margin: 12px 0 22px; }
+  .marquee .masks { font-size: 56px; animation: sway 3s ease-in-out infinite; display: inline-block; }
+  @keyframes sway { 50% { transform: rotate(-6deg) translateY(-4px); } }
+  .marquee h1 {
+    margin: 4px 0 0; font-size: clamp(34px, 9vw, 54px); font-weight: 700; color: var(--gold);
+    text-shadow: 0 3px 0 var(--gold-dark), 0 0 24px rgba(246,196,83,.35);
   }
-  .icon-btn:active, .tile:active, .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.12); }
-  .stars-pill { background: var(--card); box-shadow: var(--shadow); border-radius: 999px; padding: 10px 16px; font-size: 24px; white-space: nowrap; }
-
-  /* Home */
-  .hello { text-align: center; margin: 8px 0 20px; }
-  .hello .mascot { font-size: 90px; display: inline-block; animation: bob 2.5s ease-in-out infinite; }
-  @keyframes bob { 50% { transform: translateY(-10px) rotate(-4deg); } }
-  .hello h1 { margin: 4px 0 0; font-size: clamp(32px, 8vw, 52px); color: var(--orange); }
-  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  .tile {
-    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 18px 10px; text-align: center; min-height: 150px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-    font-size: 22px; font-weight: bold;
+  .marquee p { margin: 6px 0 0; font-size: 19px; opacity: .85; }
+  .books { display: grid; gap: 16px; width: 100%; max-width: 560px; }
+  .book {
+    display: flex; align-items: center; gap: 16px; padding: 14px 18px; border-radius: 22px;
+    background: var(--parchment); color: var(--ink); text-align: left;
+    box-shadow: 0 6px 0 var(--gold-dark), 0 10px 24px rgba(0,0,0,.35);
+    transition: transform .1s;
   }
-  .tile .emo { font-size: 64px; line-height: 1; }
-  .tile.c1 { background: #ffe1ec; } .tile.c2 { background: #dff6ff; } .tile.c3 { background: #e6ffd9; }
-  .tile.c4 { background: #f0e4ff; } .tile.c5 { background: #fff1c2; }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .tile.c1, :root:not([data-theme="light"]) .tile.c2,
-    :root:not([data-theme="light"]) .tile.c3, :root:not([data-theme="light"]) .tile.c4,
-    :root:not([data-theme="light"]) .tile.c5 { background: var(--card); }
+  .book:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--gold-dark); }
+  .book .cover { font-size: 58px; width: 76px; height: 76px; display: grid; place-items: center; border-radius: 18px; flex-shrink: 0; }
+  .book h2 { margin: 0; font-size: 24px; }
+  .book .stars { font-size: 18px; margin-top: 4px; min-height: 22px; letter-spacing: 2px; }
+  .grownups { margin-top: 26px; font-size: 16px; opacity: .65; text-decoration: underline; padding: 10px; }
+
+  /* ---------- Theatre ---------- */
+  #theatre { position: relative; }
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px 6px; }
+  .round {
+    width: 48px; height: 48px; border-radius: 50%; font-size: 22px; flex-shrink: 0;
+    background: rgba(255,255,255,.12); display: grid; place-items: center;
   }
-  .letter-tile .emo { font-size: 56px; font-weight: 900; color: var(--purple); font-family: system-ui, sans-serif; }
-  .tile small { font-size: 15px; color: var(--muted); font-weight: normal; }
+  .lanterns { flex: 1; display: flex; justify-content: center; gap: 8px; }
+  .lantern { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,.18); transition: all .3s; }
+  .lantern.lit { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+  .lantern.now { transform: scale(1.35); background: #fff; box-shadow: 0 0 12px #fff; }
+  .ear { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; position: relative; background: rgba(255,255,255,.12); }
+  .ear.off { opacity: .35; }
+  .ear .ring { position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--gold); opacity: 0; transform: scale(1); transition: transform .08s, opacity .08s; }
 
-  /* Practice card */
-  .card {
-    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-    padding: 20px; text-align: center; position: relative;
+  .proscenium {
+    position: relative; flex: 1; margin: 0 10px; border-radius: 18px 18px 8px 8px; overflow: hidden;
+    border: 6px solid var(--gold-dark);
+    box-shadow: inset 0 0 0 3px var(--gold), 0 10px 30px rgba(0,0,0,.5);
+    min-height: 280px;
   }
-  .picture { font-size: clamp(120px, 34vw, 200px); line-height: 1.1; cursor: pointer; display: inline-block; }
-  .picture.wiggle { animation: wiggle .5s; }
-  @keyframes wiggle { 25% { transform: rotate(-8deg) scale(1.05);} 75% { transform: rotate(8deg) scale(1.05);} }
-  .word { font-size: clamp(38px, 10vw, 64px); font-weight: bold; letter-spacing: 2px; margin: 4px 0 10px; }
-  .word b { color: var(--pink); }
-  .instr { font-size: clamp(20px, 5vw, 28px); margin: 6px 0 14px; }
-  .muted { color: var(--muted); }
-  .actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
-  .big-btn {
-    border-radius: 999px; padding: 16px 22px; font-size: 24px; font-weight: bold;
-    box-shadow: var(--shadow); background: var(--card); min-width: 64px;
-    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  .backdrop { position: absolute; inset: 0; transition: background 1s; }
+  .deco { position: absolute; transition: opacity .8s; pointer-events: none; }
+  .floor {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 20%;
+    background: repeating-linear-gradient(90deg, #a0642e 0 46px, #8a5224 46px 48px), #a0642e;
+    box-shadow: inset 0 8px 14px rgba(0,0,0,.35);
   }
-  .big-btn.listen { background: var(--blue); color: #fff; }
-  .big-btn.rec { background: var(--pink); color: #fff; }
-  .big-btn.rec.on { animation: pulse 1s infinite; }
-  @keyframes pulse { 50% { transform: scale(1.08); } }
-  .big-btn.play { background: var(--purple); color: #fff; }
-  .big-btn.good { background: var(--green); color: #fff; font-size: 28px; padding: 18px 28px; }
-  .big-btn[disabled] { opacity: .35; }
-  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 12px; }
-  .dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-  .dot { width: 14px; height: 14px; border-radius: 50%; background: #e2d6cc; }
-  .dot.on { background: var(--orange); }
-  .dot.done { background: var(--green); }
-
-  .tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
-  .tab { border-radius: 999px; padding: 10px 16px; font-size: 18px; font-weight: bold; background: var(--card); box-shadow: var(--shadow); }
-  .tab.on { background: var(--orange); color: #fff; }
-
-  /* Gym counter */
-  .counter { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
-  .counter span { width: 38px; height: 38px; border-radius: 50%; background: #eee3d8; display: grid; place-items: center; font-size: 20px; transition: transform .2s; }
-  .counter span.hit { background: var(--yellow); transform: scale(1.15); }
-
-  /* Blow game */
-  .cake { font-size: 110px; line-height: 1; }
-  .candles { display: flex; justify-content: center; gap: 4px; font-size: 44px; min-height: 80px; }
-  .candle { transition: opacity .4s, transform .4s; display: flex; flex-direction: column; align-items: center; }
-  .candle .flame { animation: flicker .3s infinite alternate; display: block; height: 40px; font-size: 36px; }
-  .candle.out .flame { opacity: 0; transform: translateY(-30px) scale(.4); transition: all .5s; }
-  @keyframes flicker { to { transform: scale(1.12) rotate(4deg); } }
-  .meter { height: 26px; border-radius: 999px; background: #eee3d8; overflow: hidden; margin: 16px auto; max-width: 420px; }
-  .meter > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .08s; }
-
-  /* Album */
-  .album { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
-  .sticker { aspect-ratio: 1; border-radius: 22px; background: var(--card); box-shadow: var(--shadow); display: grid; place-items: center; font-size: 48px; }
-  .sticker.locked { filter: grayscale(1); opacity: .25; }
-
-  /* Parent */
-  .parent label { display: flex; align-items: center; gap: 10px; font-size: 20px; padding: 8px 0; }
-  .parent input[type=checkbox] { width: 28px; height: 28px; }
-  .parent .section { text-align: left; margin-bottom: 16px; }
-  .parent h3 { margin: 0 0 8px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
-  .chip { border-radius: 14px; padding: 10px 14px; background: var(--bg); font-size: 22px; font-weight: bold; display: flex; gap: 6px; align-items: center; }
-  .note { font-size: 16px; line-height: 1.45; }
-
-  /* Celebrate */
-  .burst { position: fixed; pointer-events: none; font-size: 40px; z-index: 50; animation: fly 1.2s ease-out forwards; }
-  @keyframes fly { to { transform: translate(var(--dx), var(--dy)) rotate(360deg); opacity: 0; } }
-  .toast {
-    position: fixed; left: 50%; top: 30%; transform: translate(-50%, -50%) scale(0);
-    background: var(--card); border-radius: 32px; box-shadow: 0 10px 40px rgba(0,0,0,.25);
-    padding: 24px 32px; font-size: 34px; font-weight: bold; z-index: 60; text-align: center; transition: transform .25s;
-    max-width: calc(100vw - 32px);
+  .spot {
+    position: absolute; left: 50%; bottom: 8%; width: 70%; height: 30%; transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(255,240,190,.55), transparent 65%);
+    pointer-events: none;
   }
-  .toast.show { transform: translate(-50%, -50%) scale(1); }
-  .toast .big { font-size: 80px; display: block; }
+  .valance {
+    position: absolute; top: 0; left: 0; right: 0; height: 34px; z-index: 5;
+    background: radial-gradient(circle at 20px -6px, var(--velvet) 22px, transparent 23px) 0 0 / 40px 34px repeat-x;
+    filter: drop-shadow(0 4px 3px rgba(0,0,0,.35));
+  }
+  .valance::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 12px; background: var(--velvet-dark); }
+  .drape {
+    position: absolute; top: 0; bottom: 0; width: 9%; z-index: 4;
+    background: repeating-linear-gradient(90deg, var(--velvet) 0 10px, var(--velvet-dark) 10px 14px, var(--velvet) 14px 22px);
+  }
+  .drape.l { left: 0; border-radius: 0 0 60% 0; } .drape.r { right: 0; border-radius: 0 0 0 60%; }
+  .curtain {
+    position: absolute; top: 0; bottom: 0; width: 51%; z-index: 6;
+    background: repeating-linear-gradient(90deg, var(--velvet) 0 18px, var(--velvet-dark) 18px 26px, var(--velvet) 26px 40px);
+    transition: transform 1.2s cubic-bezier(.6,0,.3,1);
+    box-shadow: 0 0 30px rgba(0,0,0,.5);
+  }
+  .curtain.l { left: 0; } .curtain.r { right: 0; }
+  .proscenium.open .curtain.l { transform: translateX(-92%); }
+  .proscenium.open .curtain.r { transform: translateX(92%); }
+
+  .actor {
+    position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%);
+    font-size: clamp(110px, 30vw, 170px); line-height: 1; z-index: 2; cursor: pointer;
+    filter: drop-shadow(0 8px 6px rgba(0,0,0,.35));
+  }
+  .actor.enter { animation: enter .7s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes enter { from { transform: translateX(-50%) translateY(60%) scale(.4); opacity: 0; } }
+  .actor.hop { animation: hop .55s; }
+  @keyframes hop { 30% { transform: translateX(-50%) translateY(-22%) scale(1.08, .95) rotate(-5deg); } 60% { transform: translateX(-50%) translateY(0) scale(.95,1.05) rotate(4deg); } }
+  .actor.idle { animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { transform: translateX(-50%) scale(1.03, .98); } }
+  .bubble {
+    position: absolute; left: 50%; bottom: calc(13% + clamp(115px, 31vw, 175px)); transform: translateX(-50%) scale(0);
+    background: #fff; color: var(--ink); font-weight: 700; font-size: clamp(26px, 7vw, 38px);
+    padding: 8px 20px; border-radius: 26px; z-index: 3; white-space: nowrap;
+    transition: transform .25s cubic-bezier(.3,1.6,.5,1);
+    box-shadow: 0 4px 0 rgba(0,0,0,.15);
+  }
+  .bubble::after { content: ""; position: absolute; left: 50%; bottom: -12px; margin-left: -10px; border: 10px solid transparent; border-top-color: #fff; border-bottom: 0; }
+  .bubble.show { transform: translateX(-50%) scale(1); }
+  .target {
+    position: absolute; z-index: 5; font-size: clamp(44px, 12vw, 64px); line-height: 1;
+    animation: float 2.4s ease-in-out infinite; cursor: pointer; padding: 6px;
+  }
+  .target:nth-child(odd) { animation-duration: 3s; }
+  @keyframes float { 50% { transform: translateY(-10px) rotate(4deg); } }
+  .target.gone { animation: vanish .6s forwards; pointer-events: none; }
+  @keyframes vanish { to { transform: scale(1.8) translateY(-40px); opacity: 0; } }
+  .cast { position: absolute; left: 0; right: 0; bottom: 12%; display: flex; justify-content: center; gap: 0; z-index: 2; font-size: clamp(32px, 9vw, 64px); }
+  .cast span { display: inline-block; animation: bow 1.6s ease-in-out infinite; }
+  @keyframes bow { 0%, 60%, 100% { transform: none; } 30% { transform: rotate(18deg) translateY(8px); } }
+  .reps { position: absolute; top: 44px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 3; font-size: 34px; }
+  .reps span { opacity: .3; filter: grayscale(1); transition: all .3s; }
+  .reps span.on { opacity: 1; filter: none; transform: scale(1.25); }
+
+  .scroll {
+    margin: 10px 12px 0; padding: 14px 18px; border-radius: 16px;
+    background: var(--parchment); color: var(--ink); font-size: clamp(19px, 4.6vw, 24px); line-height: 1.35;
+    min-height: 92px; position: relative; box-shadow: 0 4px 0 #d8c290;
+  }
+  .scroll .ask { display: block; font-weight: 700; color: var(--velvet); margin-top: 4px; }
+  .scroll .replay { position: absolute; right: 8px; bottom: 8px; font-size: 22px; opacity: .7; padding: 4px; }
+  .cta-row { padding: 12px 12px calc(14px + env(safe-area-inset-bottom)); display: flex; justify-content: center; }
+  .cta {
+    min-width: 230px; padding: 16px 30px; border-radius: 999px; font-size: 26px; font-weight: 700;
+    background: linear-gradient(#ffd977, var(--gold)); color: var(--velvet-dark);
+    box-shadow: 0 6px 0 var(--gold-dark), 0 0 22px rgba(246,196,83,.4);
+  }
+  .cta:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--gold-dark); }
+  .cta.pulse { animation: glow 1.2s ease-in-out infinite; }
+  @keyframes glow { 50% { transform: scale(1.06); box-shadow: 0 6px 0 var(--gold-dark), 0 0 40px rgba(246,196,83,.8); } }
+
+  .spark { position: fixed; pointer-events: none; z-index: 50; font-size: 30px; animation: fly 1.1s ease-out forwards; }
+  @keyframes fly { to { transform: translate(var(--dx), var(--dy)) rotate(300deg); opacity: 0; } }
+
+  /* ---------- Grown-ups ---------- */
+  #grownups { overflow-y: auto; padding: 16px; }
+  .panel { background: var(--parchment); color: var(--ink); border-radius: 20px; padding: 16px 18px; margin: 0 auto 14px; max-width: 620px; font-size: 17px; line-height: 1.5; }
+  .panel h2 { margin: 0 0 8px; font-size: 21px; color: var(--velvet); }
+  .panel label { display: flex; gap: 10px; align-items: center; padding: 6px 0; }
+  .panel input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--velvet); }
+  .panel table { border-collapse: collapse; width: 100%; }
+  .panel td { padding: 4px 6px; border-bottom: 1px solid #ead9b0; vertical-align: top; }
+  .panel .btn { background: var(--velvet); color: #fff; border-radius: 999px; padding: 10px 18px; font-size: 17px; margin-top: 6px; }
+  .gu-head { display: flex; align-items: center; gap: 12px; max-width: 620px; margin: 0 auto 14px; }
+  .gu-head h1 { margin: 0; font-size: 26px; color: var(--gold); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
 
 <!-- HOME -->
 <section class="screen active" id="home">
-  <header class="bar">
-    <span class="stars-pill" id="starCount">⭐ 0</span>
-    <span style="flex:1"></span>
-    <button class="icon-btn" data-go="parent" aria-label="Pre rodičov">⚙️</button>
-  </header>
-  <div class="hello">
-    <div class="mascot">🦊</div>
-    <h1>Hovorílko</h1>
-    <div class="instr muted">Poď sa so mnou hrať s jazýčkom!</div>
+  <div class="marquee">
+    <div class="masks">🎭</div>
+    <h1>Story Stage</h1>
+    <p>Pick a story. You are the star!</p>
   </div>
-  <div class="grid">
-    <button class="tile c1" data-go="gym"><span class="emo">👅</span>Rozcvička</button>
-    <button class="tile c2" data-go="blow"><span class="emo">🎂</span>Fúkanie</button>
-    <button class="tile c3" data-go="sounds"><span class="emo">🗣️</span>Hlásky</button>
-    <button class="tile c4" data-go="album"><span class="emo">🎁</span>Nálepky</button>
-  </div>
+  <div class="books" id="books"></div>
+  <button class="grownups" id="openGrownups">For grown-ups</button>
 </section>
 
-<!-- GYM LIST -->
-<section class="screen" id="gym">
-  <header class="bar">
-    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
-    <h1>Rozcvička jazýčka</h1>
-    <span class="stars-pill js-stars">⭐ 0</span>
-  </header>
-  <div class="grid" id="gymGrid"></div>
+<!-- THEATRE -->
+<section class="screen" id="theatre">
+  <div class="topbar">
+    <button class="round" id="exit" aria-label="Back to stories">✕</button>
+    <div class="lanterns" id="lanterns"></div>
+    <div class="ear off" id="ear" title="Magic ears"><span>👂</span><span class="ring" id="earRing"></span></div>
+  </div>
+  <div class="proscenium" id="stage">
+    <div class="backdrop" id="backdrop"></div>
+    <div id="decos"></div>
+    <div class="floor"></div>
+    <div class="spot"></div>
+    <div class="reps" id="reps"></div>
+    <div id="targets"></div>
+    <div class="cast" id="cast"></div>
+    <div class="actor" id="actor"></div>
+    <div class="bubble" id="bubble"></div>
+    <div class="drape l"></div><div class="drape r"></div>
+    <div class="valance"></div>
+    <div class="curtain l"></div><div class="curtain r"></div>
+  </div>
+  <div class="scroll" id="scroll"><span id="say"></span><span class="ask" id="ask"></span><button class="replay" id="replay" aria-label="Hear again">🔊</button></div>
+  <div class="cta-row"><button class="cta" id="cta">Start the show</button></div>
 </section>
 
-<!-- GYM EXERCISE -->
-<section class="screen" id="gymEx">
-  <header class="bar">
-    <button class="icon-btn" data-go="gym" aria-label="Späť">⬅️</button>
-    <h1 id="gymTitle"></h1>
-    <span class="stars-pill js-stars">⭐ 0</span>
-  </header>
-  <div class="card">
-    <div class="picture" id="gymPic"></div>
-    <div class="instr" id="gymInstr"></div>
-    <div class="counter" id="gymCounter"></div>
-    <div class="actions">
-      <button class="big-btn listen" id="gymListen">🔊 Počúvaj</button>
-      <button class="big-btn good" id="gymTap">👆 Raz!</button>
-    </div>
-    <div class="muted" style="margin-top:12px">Ťukni na „Raz!“ po každom opakovaní.</div>
+<!-- GROWN-UPS -->
+<section class="screen" id="grownups">
+  <div class="gu-head">
+    <button class="round" id="guBack" aria-label="Back">✕</button>
+    <h1>For grown-ups</h1>
+  </div>
+  <div class="panel">
+    <h2>How it works</h2>
+    Each story is a short play. In every scene a new character appears, and your child plays its part by imitating
+    its sound (“Sssss” like a snake, “Rrroar” like a lion). Mouth-and-tongue warm-ups and breathing games are built
+    into the story. Each sound is practised three times.
+    <br><br>
+    <b>Magic ears 👂</b> listen through the microphone and move the story on when your child makes the sound.
+    They hear <i>that</i> a sound was made, not <i>how well</i> it was said, so stay close, show the sound first,
+    and praise effort. You can always tap the golden button instead.
+  </div>
+  <div class="panel">
+    <h2>Sounds in each story</h2>
+    <table id="soundTable"></table>
+  </div>
+  <div class="panel">
+    <h2>Settings</h2>
+    <label><input type="checkbox" id="optEars"> Magic ears (use the microphone)</label>
+    <label><input type="checkbox" id="optSlow"> Slower storyteller voice</label>
+    <div id="voiceInfo" style="margin-top:6px"></div>
+    <button class="btn" id="testVoice">🔊 Test the voice</button>
+  </div>
+  <div class="panel">
+    <h2>Tips</h2>
+    • Short and often: one story a day is plenty.<br>
+    • Sit in front of a mirror for the tongue and lip games.<br>
+    • Make the sound yourself first, then let your child copy you.<br>
+    • This app supports speech therapy at home. It does not replace a speech therapist.
+  </div>
+  <div class="panel">
+    <h2>Reset</h2>
+    <button class="btn" id="reset">Clear all stars</button>
   </div>
 </section>
-
-<!-- BLOW -->
-<section class="screen" id="blow">
-  <header class="bar">
-    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
-    <h1>Sfúkni sviečky</h1>
-    <span class="stars-pill js-stars">⭐ 0</span>
-  </header>
-  <div class="card">
-    <div class="candles" id="candles"></div>
-    <div class="cake">🎂</div>
-    <div class="instr" id="blowInstr">Nadýchni sa nosom a silno fúkni ústami!</div>
-    <div class="meter"><div id="blowMeter"></div></div>
-    <div class="actions">
-      <button class="big-btn listen" id="blowMic">🎤 Zapni mikrofón</button>
-      <button class="big-btn" id="blowTap">💨 Fú!</button>
-      <button class="big-btn" id="blowReset">🔄 Znova</button>
-    </div>
-    <div class="muted" style="margin-top:12px" id="blowHint">S mikrofónom sviečky zhasnú, keď fúkneš. Bez neho ťukni na „Fú!“.</div>
-  </div>
-</section>
-
-<!-- SOUND PICKER -->
-<section class="screen" id="sounds">
-  <header class="bar">
-    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
-    <h1>Vyber si hlásku</h1>
-    <span class="stars-pill js-stars">⭐ 0</span>
-  </header>
-  <div class="grid" id="soundGrid"></div>
-</section>
-
-<!-- SOUND PRACTICE -->
-<section class="screen" id="practice">
-  <header class="bar">
-    <button class="icon-btn" data-go="sounds" aria-label="Späť">⬅️</button>
-    <h1 id="practiceTitle"></h1>
-    <span class="stars-pill js-stars">⭐ 0</span>
-  </header>
-  <div class="tabs" id="practiceTabs"></div>
-  <div class="card">
-    <div class="picture" id="pPic"></div>
-    <div class="word" id="pWord"></div>
-    <div class="instr muted" id="pHint"></div>
-    <div class="actions">
-      <button class="big-btn listen" id="pListen">🔊</button>
-      <button class="big-btn rec" id="pRec">🎤</button>
-      <button class="big-btn play" id="pPlay" disabled>▶️</button>
-    </div>
-    <div class="actions">
-      <button class="big-btn good" id="pGood">⭐ Podarilo sa!</button>
-    </div>
-    <div class="nav-row">
-      <button class="icon-btn" id="pPrev" aria-label="Predchádzajúce">◀️</button>
-      <div class="dots" id="pDots"></div>
-      <button class="icon-btn" id="pNext" aria-label="Ďalšie">▶️</button>
-    </div>
-  </div>
-</section>
-
-<!-- ALBUM -->
-<section class="screen" id="album">
-  <header class="bar">
-    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
-    <h1>Moje nálepky</h1>
-    <span class="stars-pill js-stars">⭐ 0</span>
-  </header>
-  <div class="card" style="margin-bottom:16px">
-    <div class="instr" id="albumInfo"></div>
-  </div>
-  <div class="album" id="albumGrid"></div>
-</section>
-
-<!-- PARENT -->
-<section class="screen parent" id="parent">
-  <header class="bar">
-    <button class="icon-btn" data-go="home" aria-label="Domov">🏠</button>
-    <h1>Pre rodičov</h1>
-  </header>
-  <div class="card section">
-    <h3>Ktoré hlásky trénujeme?</h3>
-    <p class="note muted">Zobrazia sa iba vybrané hlásky. Odporúčame tie, ktoré odporučila logopédka.</p>
-    <div class="chips" id="parentSounds"></div>
-  </div>
-  <div class="card section">
-    <h3>Prehľad</h3>
-    <div class="note" id="parentStats"></div>
-  </div>
-  <div class="card section">
-    <h3>Hlas</h3>
-    <p class="note" id="voiceInfo"></p>
-    <label><input type="checkbox" id="optSlow" checked> Hovoriť pomalšie</label>
-    <button class="big-btn" id="testVoice">🔊 Vyskúšať hlas</button>
-  </div>
-  <div class="card section">
-    <h3>Tipy</h3>
-    <ul class="note">
-      <li>Cvičte krátko, ale často: 5–10 minút denne stačí.</li>
-      <li>Rozcvičku jazýčka robte pred zrkadlom, dieťa vidí, čo robí.</li>
-      <li>Najprv hláska sama, potom slabiky, potom slová (začiatok → koniec → stred).</li>
-      <li>Hviezdičku dávajte za snahu, nie iba za dokonalý výsledok.</li>
-      <li>Nahrávanie a prehrávanie pomáha dieťaťu počuť samého seba.</li>
-      <li>Aplikácia logopéda nenahrádza, len pomáha pri domácom precvičovaní.</li>
-    </ul>
-  </div>
-  <div class="card section">
-    <h3>Vynulovať</h3>
-    <button class="big-btn" id="resetAll">🗑️ Vymazať hviezdičky a nálepky</button>
-  </div>
-</section>
-
-<div class="toast" id="toast"></div>
 
 <script>
-/* ===================== DATA ===================== */
-
-const GYM = [
-  { id:'konik',   emo:'🐴', name:'Koníček',   say:'Koníček klope kopýtkami. Mľaskaj jazýčkom o podnebie: klap, klap!', reps:10 },
-  { id:'hodinky', emo:'⏰', name:'Hodinky',   say:'Otvor ústa a pohybuj jazýčkom z jedného kútika do druhého: tik, tak!', reps:10 },
-  { id:'hojdacka',emo:'🎢', name:'Hojdačka',  say:'Vystrč jazýček hore k nosu a potom dole k brade.', reps:8 },
-  { id:'maliar',  emo:'🖌️', name:'Maliar',    say:'Jazýček je štetec. Natri podnebie odpredu až dozadu.', reps:8 },
-  { id:'zmrzlina',emo:'🍦', name:'Zmrzlina',  say:'Oblízni si pery dookola, ako keď ješ zmrzlinu.', reps:6 },
-  { id:'zubar',   emo:'🦷', name:'Zubár',     say:'Jazýčkom spočítaj všetky zúbky hore aj dole.', reps:4 },
-  { id:'hadik',   emo:'🐍', name:'Hadík',     say:'Hadík vystrčí jazýček z úst a rýchlo ho schová.', reps:10 },
-  { id:'usmev',   emo:'😁', name:'Úsmev a pusa', say:'Usmej sa široko a potom urob pusinku.', reps:8 },
-  { id:'balon',   emo:'🎈', name:'Balónik',   say:'Nafúkni líčka ako balónik a potom ich pomaly vyfúkni.', reps:6 },
-  { id:'rybka',   emo:'🐟', name:'Rybka',     say:'Rybka otvára a zatvára ústočká bez zvuku.', reps:8 },
-  { id:'lopatka', emo:'🥄', name:'Lopatka a ihla', say:'Vyplaz široký jazýček ako lopatku a potom úzky ako ihlu.', reps:6 },
-  { id:'kohutik', emo:'🐓', name:'Kohútik',   say:'Jazýček sa schová za horné zúbky a skáče: tra-la-la!', reps:8 },
+/* =========================================================
+   STORIES
+   Scene types:
+     tell   – narration only
+     sound  – imitate the character's sound `reps` times
+     tap    – mouth/tongue game: do the move, then tap a target
+     blow   – breathing game: blow (or tap) to clear targets
+     finale – curtain call with the whole cast
+   ========================================================= */
+const STORIES = [
+  {
+    id: 'farm', title: 'The Farm Show', cover: '🐄', tint: '#d9f2c4',
+    scenes: [
+      { type:'tell', bg:'farm', actor:'🧑‍🌾',
+        say:'Tonight is the big Farm Show! Every animal will sing on the stage.',
+        ask:'But first, they need to practise. Let’s help them!' },
+      { type:'sound', bg:'farm', actor:'🐄', sound:'Mooo!', model:'Moooo', practises:'M',
+        say:'Here comes Daisy the cow.', ask:'Sing like a cow: Mooo!',
+        done:'Beautiful! Daisy is ready for the show.' },
+      { type:'sound', bg:'meadow', actor:'🐑', sound:'Baa!', model:'Baa, baa', practises:'B',
+        say:'The little lamb is very shy.', ask:'Help her sing: Baa, baa!',
+        done:'Now the lamb feels brave!' },
+      { type:'tap', bg:'farm', actor:'🐱', target:'🥛', count:4, practises:'lip licking',
+        say:'Kitten has milk all over her whiskers.', ask:'Lick your lips all around like a kitten. Then tap a milk drop!',
+        done:'Mmm, all clean! Kitten is ready.' },
+      { type:'sound', bg:'farm', actor:'🐶', sound:'Woof!', model:'Woof, woof', practises:'W',
+        say:'Rex the dog wants to sing too.', ask:'Bark like a dog: Woof, woof!',
+        done:'What a loud woof! Rex wags his tail.' },
+      { type:'sound', bg:'pond', actor:'🐟', sound:'Pop!', model:'Pop, pop', practises:'P',
+        say:'A goldfish is blowing bubbles in the pond.', ask:'Make fish lips and pop: Pop, pop!',
+        done:'Pop, pop! Shiny bubbles everywhere.' },
+      { type:'blow', bg:'fair', actor:'🐷', target:'🎈', count:3, practises:'breathing',
+        say:'Piggy has balloons for the show.', ask:'Take a big breath and blow the balloons up into the sky!',
+        done:'Whoosh! The sky is full of balloons.' },
+      { type:'finale', bg:'fair',
+        say:'The show begins! Moo, baa, woof, pop! Everyone is clapping for you.', ask:'Take a bow!' },
+    ]
+  },
+  {
+    id: 'crown', title: 'The Lost Crown', cover: '👑', tint: '#ffd9e8',
+    scenes: [
+      { type:'tell', bg:'castle', actor:'👸',
+        say:'Once upon a time, Princess Rosie lived in a pink castle. One windy morning, her golden crown flew away!',
+        ask:'Let’s help her find it.' },
+      { type:'blow', bg:'forest', actor:'👸', target:'☁️', count:3, practises:'breathing',
+        say:'The princess walks into the Whispering Forest. But it is so foggy!', ask:'Take a big breath and blow the fog away!',
+        done:'Whoosh! Now we can see the path.' },
+      { type:'sound', bg:'forest', actor:'🐍', sound:'Sssss!', model:'Sssssss', practises:'S',
+        say:'A green snake is lying on the path.', ask:'Hiss like the snake to say hello: Sssss!',
+        done:'The snake hisses back and points with its tail. That way!' },
+      { type:'sound', bg:'meadow', actor:'🐝', sound:'Zzzzz!', model:'Bzzzzzz', practises:'Z',
+        say:'In the meadow, busy bees fly from flower to flower.', ask:'Buzz like a bee: Zzzzz!',
+        done:'The bees buzz: we saw something shiny near the pond!' },
+      { type:'tap', bg:'pond', actor:'🐸', target:'🪰', count:5, practises:'tongue out',
+        say:'At the pond sits a hungry frog.', ask:'Stick your tongue out like the frog. Then tap a fly!',
+        done:'Yum! The happy frog hops towards the old tree.' },
+      { type:'sound', bg:'night', actor:'🦉', sound:'Shhhh!', model:'Shhhhhh', practises:'SH',
+        say:'In the old tree, baby owls are sleeping.', ask:'Let’s be very quiet. Say: Shhhh!',
+        done:'Mother Owl whispers: thank you! The crown is in the chick’s nest.' },
+      { type:'sound', bg:'farm', actor:'🐥', sound:'Cheep!', model:'Cheep, cheep', practises:'CH',
+        say:'A little chick is sitting on something golden.', ask:'Talk to the chick: Cheep, cheep!',
+        done:'The chick hops off. Look! It is the crown!' },
+      { type:'finale', bg:'castle', prop:'👑',
+        say:'Princess Rosie wears her golden crown again. You found it! You are a true hero.', ask:'Take a bow!' },
+    ]
+  },
+  {
+    id: 'dragon', title: 'The Sleepy Dragon', cover: '🐉', tint: '#d6e4ff',
+    scenes: [
+      { type:'tell', bg:'castle', actor:'🤴',
+        say:'Prince Leo wants to visit his best friend, the dragon. But the dragon lives in a faraway cave.',
+        ask:'Let’s ride there together!' },
+      { type:'tap', bg:'hills', actor:'🐴', target:'🥕', count:5, practises:'tongue clicks',
+        say:'Here is Pony, ready to gallop.', ask:'Click your tongue like hooves: clip, clop! Then give Pony a carrot.',
+        done:'Off we go, galloping fast!' },
+      { type:'sound', bg:'hills', actor:'🦁', sound:'Rrroar!', model:'Rrrrroar', practises:'R',
+        say:'A big lion stands at the bridge.', ask:'Only brave roarers may pass. Roar: Rrrrr!',
+        done:'What a roar! The lion bows and lets us cross.' },
+      { type:'sound', bg:'meadow', actor:'🐦', sound:'La-la-la!', model:'La, la, la', practises:'L',
+        say:'A little bird is singing on a branch.', ask:'Sing along with her: La, la, la!',
+        done:'Lovely singing! The bird flies ahead to show the way.' },
+      { type:'sound', bg:'pond', actor:'🦆', sound:'Quack!', model:'Quack, quack', practises:'K',
+        say:'Mother Duck is swimming in the river.', ask:'Ask her for the way: Quack, quack!',
+        done:'Mother Duck quacks: the cave is behind the hill!' },
+      { type:'sound', bg:'hills', actor:'🦃', sound:'Gobble!', model:'Gobble, gobble', practises:'G',
+        say:'A turkey is guarding the hill path.', ask:'Say hello in turkey talk: Gobble, gobble!',
+        done:'The turkey giggles and steps aside.' },
+      { type:'blow', bg:'cave', actor:'🐉', target:'❄️', count:3, practises:'breathing',
+        say:'Here is the dragon! But the cave is so cold, he can’t wake up.', ask:'Blow warm air to melt the ice!',
+        done:'The dragon opens his eyes and smiles!' },
+      { type:'finale', bg:'cave', prop:'❤️',
+        say:'The dragon gives Prince Leo a big warm hug. Best friends forever!', ask:'Take a bow!' },
+    ]
+  },
 ];
 
-// Words: [word, emoji]. The target sound is highlighted automatically.
-const SOUNDS = [
-  { id:'R', label:'R', emo:'🏍️', solo:'Rrrrrr', soloText:'Motorka robí rrrrr', speakSolo:'rrrrrrr',
-    syl:['ra','ro','ru','re','ri','ar','or','ur','er','ir','tra','dra','kra','bra'],
-    start:[['ryba','🐟'],['ruka','✋'],['raketa','🚀'],['ruža','🌹'],['robot','🤖'],['rádio','📻']],
-    mid:[['koruna','👑'],['mrkva','🥕'],['žirafa','🦒'],['hruška','🍐'],['baran','🐏'],['okuliare','👓']],
-    end:[['syr','🧀'],['tiger','🐯'],['kufor','🧳'],['traktor','🚜'],['papier','📄'],['kocúr','🐈']] },
-  { id:'L', label:'L', emo:'🎵', solo:'La-la-la', soloText:'Spievame la-la-la', speakSolo:'la la la',
-    syl:['la','lo','lu','le','li','al','ol','ul','el','il','bla','kla','pla','sla'],
-    start:[['lopta','⚽'],['lev','🦁'],['loď','🚢'],['lyžica','🥄'],['lienka','🐞'],['list','🍃']],
-    mid:[['jablko','🍎'],['slimák','🐌'],['mlieko','🥛'],['balón','🎈'],['delfín','🐬'],['klobúk','🎩']],
-    end:[['orol','🦅'],['bicykel','🚲'],['anjel','👼'],['tunel','🚇']] },
-  { id:'S', label:'S', emo:'🐍', solo:'Sssss', soloText:'Hadík syčí sssss', speakSolo:'sssssss',
-    syl:['sa','so','su','se','si','as','os','us','es','is'],
-    start:[['slnko','☀️'],['sova','🦉'],['slon','🐘'],['srdce','❤️'],['sneh','❄️'],['syr','🧀']],
-    mid:[['husa','🪿'],['misa','🥣'],['pastelka','🖍️'],['basa','🎻']],
-    end:[['pes','🐕'],['nos','👃'],['autobus','🚌'],['ananás','🍍'],['kaktus','🌵'],['les','🌲']] },
-  { id:'Z', label:'Z', emo:'🦟', solo:'Zzzzz', soloText:'Komárik bzučí zzzzz', speakSolo:'zzzzzzz',
-    syl:['za','zo','zu','ze','zi','az','oz','uz','ez','iz'],
-    start:[['zebra','🦓'],['zuby','🦷'],['zajac','🐰'],['zámok','🏰'],['zemiak','🥔'],['zvonček','🔔']],
-    mid:[['koza','🐐'],['váza','🏺'],['jazyk','👅'],['mozog','🧠']],
-    end:[] },
-  { id:'C', label:'C', emo:'🦗', solo:'Ccccc', soloText:'Cvrček cvrčí cccc', speakSolo:'cccccc',
-    syl:['ca','co','cu','ce','ci','ac','oc','uc','ec','ic'],
-    start:[['cibuľa','🧅'],['citrón','🍋'],['cukrík','🍬'],['cyklista','🚴'],['cesta','🛣️']],
-    mid:[['ovca','🐑'],['vajce','🥚'],['opica','🐒'],['palacinka','🥞'],['srdce','❤️']],
-    end:[['palec','👍'],['zajac','🐰'],['chlapec','👦'],['tanec','💃'],['kopec','⛰️']] },
-  { id:'Š', label:'Š', emo:'🚂', solo:'Šššššš', soloText:'Vláčik robí šššš', speakSolo:'šššššš',
-    syl:['ša','šo','šu','še','ši','aš','oš','uš','eš','iš'],
-    start:[['šašo','🤡'],['šaty','👗'],['šiška','🌲'],['šálka','☕'],['šach','♟️'],['šarkan','🪁']],
-    mid:[['myška','🐭'],['mašľa','🎀'],['hruška','🍐'],['taška','👜'],['kaša','🥣']],
-    end:[['myš','🐁'],['kôš','🧺'],['guláš','🍲']] },
-  { id:'Ž', label:'Ž', emo:'🪲', solo:'Žžžžž', soloText:'Chrobáčik bzučí žžžž', speakSolo:'žžžžžž',
-    syl:['ža','žo','žu','že','ži','až','ož','už','ež','iž'],
-    start:[['žaba','🐸'],['žirafa','🦒'],['žena','👩'],['žeriav','🏗️'],['žltá','💛']],
-    mid:[['ruža','🌹'],['lyže','🎿'],['lyžica','🥄'],['ježko','🦔']],
-    end:[['jež','🦔'],['nôž','🔪'],['garáž','🏠']] },
-  { id:'Č', label:'Č', emo:'🐤', solo:'Čiv-čiv', soloText:'Vtáčik spieva čiv-čiv', speakSolo:'čiv čiv',
-    syl:['ča','čo','ču','če','či','ač','oč','uč','eč','ič'],
-    start:[['čaj','🍵'],['čiapka','🧢'],['čerešne','🍒'],['čokoláda','🍫'],['čarodejník','🧙'],['čln','🛶']],
-    mid:[['mačka','🐱'],['hračka','🧸'],['včela','🐝'],['pečivo','🥐'],['očko','👁️']],
-    end:[['kľúč','🔑'],['meč','🗡️'],['koláč','🥧']] },
-  { id:'K', label:'K', emo:'🐓', solo:'Kikirikí', soloText:'Kohút volá kikirikí', speakSolo:'kikirikí',
-    syl:['ka','ko','ku','ke','ki','ak','ok','uk','ek','ik'],
-    start:[['kniha','📚'],['kocka','🎲'],['koník','🐴'],['krava','🐄'],['kohút','🐓'],['kľúč','🔑']],
-    mid:[['jablko','🍎'],['rukavice','🧤'],['okuliare','👓'],['mlieko','🥛']],
-    end:[['vlak','🚂'],['jazyk','👅'],['slimák','🐌'],['zámok','🏰'],['mak','🌺']] },
-];
+/* Scenery: [emoji, left %, top %, size px, opacity] */
+const BACKDROPS = {
+  farm:   { bg:'linear-gradient(#9fd8ff, #d8f3ff 60%, #b5e08a 60%)', deco:[['🏡',8,32,70,1],['🌻',78,46,40,1],['🌾',64,50,36,1],['☁️',60,8,46,.9]] },
+  meadow: { bg:'linear-gradient(#ffe7a8, #fff6d6 55%, #a8dc7a 55%)', deco:[['🌳',6,26,80,1],['🌼',70,50,32,1],['🌷',82,52,32,1],['🌸',20,56,28,1],['☀️',78,8,48,1]] },
+  forest: { bg:'linear-gradient(#5f9e6e, #9ccf8f 60%, #4f8a3c 60%)', deco:[['🌲',4,22,86,1],['🌲',76,18,90,1],['🌳',60,34,64,.9],['🍄',22,56,32,1]] },
+  pond:   { bg:'linear-gradient(#a8e4ff, #d6f4ff 52%, #5fbcd3 52%)', deco:[['🪷',12,58,34,1],['🌾',80,40,52,1],['🌾',4,40,44,1],['☁️',40,10,44,.8]] },
+  night:  { bg:'linear-gradient(#1b1f4a, #3b3f7a 65%, #2f5a3a 65%)', deco:[['🌙',76,8,46,1],['✨',18,12,26,1],['✨',52,20,20,1],['🌳',2,22,96,1],['⭐',34,6,18,1]] },
+  castle: { bg:'linear-gradient(#ffc8e1, #ffe9f3 60%, #b8e39a 60%)', deco:[['🏰',6,22,92,1],['☁️',64,8,46,.9],['🌷',80,52,30,1],['🌹',88,54,28,1]] },
+  hills:  { bg:'linear-gradient(#ffd1a6, #ffecd2 50%, #9fd17e 50%)', deco:[['⛰️',2,26,90,1],['🏔️',66,20,96,.9],['🌲',44,40,44,1]] },
+  cave:   { bg:'radial-gradient(ellipse at 50% 80%, #6c4b8f, #2b1a3d 70%)', deco:[['🪨',6,50,56,1],['🪨',80,48,50,1],['💎',24,20,26,1],['💎',70,14,22,1],['✨',46,10,22,1]] },
+  fair:   { bg:'linear-gradient(#ffb3c7, #ffe0ea 60%, #b5e08a 60%)', deco:[['🎪',6,26,80,1],['🎏',74,10,44,1],['🌟',56,8,28,1],['🎉',86,40,36,1]] },
+};
 
-const STICKERS = ['🦄','🐶','🐱','🐼','🦁','🐸','🐵','🦋','🐬','🦖','🐙','🦒','🐧','🐨','🦉','🐢','🌈','🚀','🍓','🍩','🎈','🏰','👑','🧁','🌻','🐳','🦜','🍉','🎠','⭐'];
-const STARS_PER_STICKER = 5;
+// [left %, top %], kept clear of the side drapes, the valance and the actor.
+const TARGET_SPOTS = [[14,20],[66,16],[40,12],[70,44],[12,48],[42,30]];
+const PRAISE = ['Wonderful! Once more!', 'Great! One more time!', 'Brilliant!', 'Again, a bit louder!'];
 
-/* ===================== STATE ===================== */
-
-const STORE_KEY = 'hovorilko-v1';
-const defaultState = { stars: 0, enabled: SOUNDS.map(s => s.id), slow: true, log: {} };
-let state = loadState();
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return Object.assign({}, defaultState, JSON.parse(raw));
-  } catch (e) {}
-  return JSON.parse(JSON.stringify(defaultState));
-}
-function saveState() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
-}
-function today() { return new Date().toISOString().slice(0, 10); }
-function logStar(kind) {
-  const d = today();
-  state.log[d] = state.log[d] || {};
-  state.log[d][kind] = (state.log[d][kind] || 0) + 1;
-}
-
-/* ===================== HELPERS ===================== */
+/* =========================================================
+   STATE
+   ========================================================= */
+const KEY = 'story-stage-v1';
+let prefs = { ears: true, slow: true, stars: {} };
+try { const raw = localStorage.getItem(KEY); if (raw) prefs = Object.assign(prefs, JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {} }
 
 const $ = id => document.getElementById(id);
-function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
-
-function go(id) {
-  stopMic();
+function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
-  window.scrollTo(0, 0);
-  if (screens[id]) screens[id]();
-  updateStars();
-}
-document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go]');
-  if (t) go(t.dataset.go);
-});
-
-function updateStars() {
-  const txt = '⭐ ' + state.stars;
-  $('starCount').textContent = txt;
-  document.querySelectorAll('.js-stars').forEach(e => e.textContent = txt);
 }
 
-function addStar(kind, originEl) {
-  const before = Math.floor(state.stars / STARS_PER_STICKER);
-  state.stars++;
-  logStar(kind);
-  saveState();
-  updateStars();
-  burst(originEl);
-  const after = Math.floor(state.stars / STARS_PER_STICKER);
-  if (after > before && after <= STICKERS.length) {
-    setTimeout(() => toast('<span class="big">' + STICKERS[after - 1] + '</span>Nová nálepka!', 2200), 500);
-    speak('Výborne! Máš novú nálepku!');
-  } else {
-    const praise = ['Super!', 'Výborne!', 'Paráda!', 'Si šikulka!', 'Skvelé!', 'Bravó!'];
-    const p = praise[Math.floor(Math.random() * praise.length)];
-    toast('<span class="big">⭐</span>' + p, 1100);
-  }
-}
-
-function burst(originEl) {
-  const r = originEl ? originEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
-  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  const items = ['⭐','✨','🌟','💛','🎉'];
-  for (let i = 0; i < 14; i++) {
-    const s = el('div', 'burst', items[i % items.length]);
-    s.style.left = cx + 'px'; s.style.top = cy + 'px';
-    const a = Math.random() * Math.PI * 2, d = 120 + Math.random() * 160;
-    s.style.setProperty('--dx', Math.cos(a) * d + 'px');
-    s.style.setProperty('--dy', Math.sin(a) * d + 'px');
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 1300);
-  }
-}
-
-let toastTimer;
-function toast(html, ms) {
-  const t = $('toast');
-  t.innerHTML = html; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), ms || 1200);
-}
-
-/* ===================== SPEECH ===================== */
-
+/* =========================================================
+   VOICE (speech synthesis)
+   ========================================================= */
 let voice = null;
 function pickVoice() {
   if (!('speechSynthesis' in window)) return;
-  const vs = speechSynthesis.getVoices();
-  voice = vs.find(v => /^sk/i.test(v.lang)) || vs.find(v => /^cs/i.test(v.lang)) || null;
+  const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+  const pref = [/en-GB/i, /en-AU/i, /en-IE/i, /en-US/i];
+  const female = /female|serena|kate|karen|moira|tessa|samantha|libby|sonia|hazel|susan|martha/i;
+  for (const p of pref) {
+    const list = vs.filter(v => p.test(v.lang));
+    const f = list.find(v => female.test(v.name));
+    if (f || list[0]) { voice = f || list[0]; return; }
+  }
+  voice = vs[0] || null;
 }
-if ('speechSynthesis' in window) {
-  pickVoice();
-  speechSynthesis.onvoiceschanged = pickVoice;
-}
-function speak(text) {
-  if (!('speechSynthesis' in window)) return;
+if ('speechSynthesis' in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+let muteUntil = 0, speaking = false;
+function speak(parts, onDone) {
+  const list = (Array.isArray(parts) ? parts : [parts]).filter(Boolean);
+  if (!('speechSynthesis' in window) || !list.length) { onDone && setTimeout(onDone, 300); return; }
   speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = voice ? voice.lang : 'sk-SK';
-  if (voice) u.voice = voice;
-  u.rate = state.slow ? 0.75 : 0.95;
-  u.pitch = 1.1;
-  speechSynthesis.speak(u);
+  speaking = true;
+  let i = 0, finished = false;
+  const finish = () => { if (finished) return; finished = true; speaking = false; muteUntil = performance.now() + 400; onDone && onDone(); };
+  const next = () => {
+    if (i >= list.length) return finish();
+    const u = new SpeechSynthesisUtterance(list[i++]);
+    u.lang = voice ? voice.lang : 'en-GB';
+    if (voice) u.voice = voice;
+    u.rate = prefs.slow ? 0.82 : 0.95;
+    u.pitch = 1.15;
+    u.onend = next; u.onerror = finish;
+    speechSynthesis.speak(u);
+  };
+  next();
+  // Safety net: some browsers never fire onend.
+  const words = list.join(' ').split(/\s+/).length;
+  setTimeout(finish, 2500 + words * 520);
 }
+function hush() { if ('speechSynthesis' in window) speechSynthesis.cancel(); speaking = false; }
 
-/* ===================== MICROPHONE ===================== */
-
-let micStream = null, audioCtx = null, rafId = null;
-function stopMic() {
-  if (rafId) cancelAnimationFrame(rafId), rafId = null;
-  if (micStream) micStream.getTracks().forEach(t => t.stop()), micStream = null;
-  if (audioCtx) { audioCtx.close().catch(()=>{}); audioCtx = null; }
-  if (recorder && recorder.state === 'recording') recorder.stop();
-  const b = $('blowMic'); if (b) b.textContent = '🎤 Zapni mikrofón';
-}
-async function getMic() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('nomic');
-  return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-}
-
-/* ===================== SCREENS ===================== */
-
-const screens = {};
-
-/* --- Gym --- */
-screens.gym = () => {
-  const g = $('gymGrid'); g.innerHTML = '';
-  GYM.forEach((ex, i) => {
-    const b = el('button', 'tile c' + (i % 5 + 1), `<span class="emo">${ex.emo}</span>${ex.name}`);
-    b.onclick = () => openGym(ex);
-    g.appendChild(b);
+/* =========================================================
+   SOUND EFFECTS (Web Audio, no files)
+   ========================================================= */
+let fx = null;
+function fxCtx() { if (!fx) { try { fx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (fx && fx.state === 'suspended') fx.resume(); return fx; }
+function chime(high) {
+  const c = fxCtx(); if (!c) return;
+  muteUntil = Math.max(muteUntil, performance.now() + 700);
+  const notes = high ? [784, 1047, 1319] : [659, 880];
+  notes.forEach((f, i) => {
+    const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.09;
+    o.type = 'triangle'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.18, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + .5);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + .55);
   });
-};
-let gymCur = null, gymCount = 0;
-function openGym(ex) {
-  gymCur = ex; gymCount = 0;
-  go('gymEx');
-  $('gymTitle').textContent = ex.name;
-  $('gymPic').textContent = ex.emo;
-  $('gymInstr').textContent = ex.say;
-  renderGymCounter();
-  speak(ex.say);
 }
-function renderGymCounter() {
-  const c = $('gymCounter'); c.innerHTML = '';
-  for (let i = 0; i < gymCur.reps; i++) {
-    const s = el('span', i < gymCount ? 'hit' : '', i < gymCount ? '⭐' : String(i + 1));
-    c.appendChild(s);
+function applause() {
+  const c = fxCtx(); if (!c) return;
+  muteUntil = Math.max(muteUntil, performance.now() + 3200);
+  const len = c.sampleRate * 2.8, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = 0;
+  for (let k = 0; k < 140; k++) {               // many short claps
+    const start = Math.floor(Math.random() * (len - 3000)), dur = 600 + Math.random() * 900;
+    for (let j = 0; j < dur; j++) d[start + j] += (Math.random() * 2 - 1) * Math.exp(-j / 180) * .5;
   }
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = buf; f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = .6;
+  g.gain.setValueAtTime(.9, c.currentTime); g.gain.linearRampToValueAtTime(0, c.currentTime + 2.8);
+  s.connect(f).connect(g).connect(c.destination); s.start();
 }
-$('gymListen').onclick = () => gymCur && speak(gymCur.say);
-$('gymPic').onclick = () => { wiggle($('gymPic')); gymCur && speak(gymCur.say); };
-$('gymTap').onclick = (e) => {
-  if (!gymCur || gymCount >= gymCur.reps) return;
-  gymCount++;
-  renderGymCounter();
-  wiggle($('gymPic'));
-  if (gymCount === gymCur.reps) {
-    addStar('gym', e.currentTarget);
-    setTimeout(() => go('gym'), 1600);
-  } else {
-    speak(String(gymCount));
-  }
-};
-function wiggle(e) { e.classList.remove('wiggle'); void e.offsetWidth; e.classList.add('wiggle'); }
 
-/* --- Blow --- */
-const CANDLES = 5;
-let candlesLeft = CANDLES, blowCooldown = false;
-screens.blow = () => resetCandles();
-function resetCandles() {
-  candlesLeft = CANDLES;
-  const c = $('candles'); c.innerHTML = '';
-  for (let i = 0; i < CANDLES; i++) c.appendChild(el('div', 'candle', '<span class="flame">🔥</span><span>🕯️</span>'));
-  $('blowInstr').textContent = 'Nadýchni sa nosom a silno fúkni ústami!';
-  $('blowMeter').style.width = '0%';
-}
-function blowOne() {
-  if (candlesLeft <= 0 || blowCooldown) return;
-  blowCooldown = true; setTimeout(() => blowCooldown = false, 700);
-  const lit = [...document.querySelectorAll('.candle:not(.out)')];
-  lit[lit.length - 1].classList.add('out');
-  candlesLeft--;
-  if (candlesLeft === 0) {
-    $('blowInstr').textContent = 'Všetky sviečky sú sfúknuté! 🎉';
-    addStar('blow', $('candles'));
-    speak('Hurá! Všetko najlepšie!');
-    stopMic();
-  }
-}
-$('blowTap').onclick = blowOne;
-$('blowReset').onclick = resetCandles;
-$('blowMic').onclick = async () => {
-  if (micStream) { stopMic(); return; }
+/* =========================================================
+   MAGIC EARS (microphone level detection)
+   Counts one "performance" when the child makes a sustained
+   sound, then waits for a short silence before counting again.
+   Ignores the storyteller's own voice and sound effects.
+   ========================================================= */
+const ears = { stream:null, ctx:null, an:null, raf:0, floor:0.01, calib:[], loudMs:0, quietMs:0, fired:false, last:0, onHit:null, mode:'voice' };
+async function earsOn() {
+  if (!prefs.ears || ears.stream) return !!ears.stream;
   try {
-    micStream = await getMic();
-  } catch (e) {
-    $('blowHint').textContent = 'Mikrofón nie je dostupný. Ťukaj na „Fú!“ po každom fúknutí.';
-    return;
-  }
-  $('blowMic').textContent = '⏹️ Vypni mikrofón';
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const src = audioCtx.createMediaStreamSource(micStream);
-  const an = audioCtx.createAnalyser(); an.fftSize = 1024;
-  src.connect(an);
-  const buf = new Float32Array(an.fftSize);
-  let loudFrames = 0;
+    ears.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } });
+  } catch (e) { setEar(false); return false; }
+  ears.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  ears.an = ears.ctx.createAnalyser(); ears.an.fftSize = 1024;
+  ears.ctx.createMediaStreamSource(ears.stream).connect(ears.an);
+  ears.calib = []; ears.last = performance.now();
+  setEar(true);
+  const buf = new Float32Array(ears.an.fftSize);
   const loop = () => {
-    an.getFloatTimeDomainData(buf);
+    ears.raf = requestAnimationFrame(loop);
+    const now = performance.now(), dt = now - ears.last; ears.last = now;
+    ears.an.getFloatTimeDomainData(buf);
     let sum = 0; for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
     const rms = Math.sqrt(sum / buf.length);
-    const level = Math.min(1, rms * 6);
-    $('blowMeter').style.width = (level * 100).toFixed(0) + '%';
-    // A blow is a sustained loud noise (~ 0.25 s).
-    if (level > 0.55) loudFrames++; else loudFrames = Math.max(0, loudFrames - 2);
-    if (loudFrames > 15) { blowOne(); loudFrames = 0; }
-    rafId = requestAnimationFrame(loop);
+    if (ears.calib.length < 40) { ears.calib.push(rms); ears.floor = ears.calib.reduce((a, b) => a + b, 0) / ears.calib.length; return; }
+    const quietTime = speaking || now < muteUntil;
+    const thr = ears.mode === 'blow' ? Math.max(0.09, ears.floor * 6) : Math.max(0.025, ears.floor * 3.2);
+    // Slowly follow the room's background noise (only while it is quiet).
+    if (!quietTime && rms < thr * .5) ears.floor = ears.floor * .995 + rms * .005;
+    const ring = $('earRing');
+    ring.style.opacity = quietTime ? 0 : Math.min(1, rms / thr);
+    ring.style.transform = 'scale(' + (1 + Math.min(.5, rms / thr * .3)) + ')';
+    if (quietTime || !ears.onHit) { ears.loudMs = 0; ears.fired = false; return; }
+    if (rms > thr) { ears.loudMs += dt; ears.quietMs = 0; }
+    else { ears.quietMs += dt; if (ears.quietMs > 250) { ears.loudMs = 0; ears.fired = false; } }
+    const need = ears.mode === 'blow' ? 300 : 350;
+    if (!ears.fired && ears.loudMs > need) { ears.fired = true; ears.onHit(); }
   };
   loop();
-};
+  return true;
+}
+function earsOff() {
+  cancelAnimationFrame(ears.raf);
+  if (ears.stream) ears.stream.getTracks().forEach(t => t.stop());
+  if (ears.ctx) ears.ctx.close().catch(() => {});
+  ears.stream = ears.ctx = ears.an = null; ears.onHit = null;
+  setEar(false);
+}
+function setEar(on) { $('ear').classList.toggle('off', !on); }
+function listen(mode, fn) { ears.mode = mode; ears.onHit = fn; ears.loudMs = 0; ears.fired = false; }
+function stopListening() { ears.onHit = null; }
 
-/* --- Sound picker --- */
-screens.sounds = () => {
-  const g = $('soundGrid'); g.innerHTML = '';
-  const list = SOUNDS.filter(s => state.enabled.includes(s.id));
-  if (!list.length) g.innerHTML = '<div class="card instr">Rodič zatiaľ nevybral žiadnu hlásku ⚙️</div>';
-  list.forEach((s, i) => {
-    const b = el('button', 'tile letter-tile c' + (i % 5 + 1), `<span class="emo">${s.label}</span><span>${s.emo}</span>`);
-    b.onclick = () => openSound(s);
-    g.appendChild(b);
+/* =========================================================
+   HOME
+   ========================================================= */
+function renderHome() {
+  const b = $('books'); b.innerHTML = '';
+  STORIES.forEach(st => {
+    const n = prefs.stars[st.id] || 0;
+    const el = document.createElement('button');
+    el.className = 'book';
+    el.innerHTML = `<span class="cover" style="background:${st.tint}">${st.cover}</span>
+      <span><h2>${st.title}</h2><div class="stars">${n ? '⭐'.repeat(Math.min(n, 7)) + (n > 7 ? ' ×' + n : '') : 'New story!'}</div></span>`;
+    el.onclick = () => openStory(st);
+    b.appendChild(el);
   });
-};
-
-/* --- Practice --- */
-let cur = null, mode = 'solo', idx = 0, items = [], doneSet = new Set();
-const MODES = [
-  { id:'solo',  label:'Hláska' },
-  { id:'syl',   label:'Slabiky' },
-  { id:'start', label:'Na začiatku' },
-  { id:'end',   label:'Na konci' },
-  { id:'mid',   label:'V strede' },
-];
-function openSound(s) {
-  cur = s;
-  go('practice');
-  $('practiceTitle').textContent = 'Hláska ' + s.label;
-  setMode('solo');
 }
-function setMode(m) {
-  mode = m; idx = 0; doneSet = new Set(); clearRecording();
-  const tabs = $('practiceTabs'); tabs.innerHTML = '';
-  MODES.forEach(md => {
-    if (md.id !== 'solo' && md.id !== 'syl' && !cur[md.id].length) return;
-    const t = el('button', 'tab' + (md.id === m ? ' on' : ''), md.label);
-    t.onclick = () => setMode(md.id);
-    tabs.appendChild(t);
+
+/* =========================================================
+   THEATRE
+   ========================================================= */
+let story = null, idx = 0, scene = null, progress = 0, phase = 'idle', ctaAction = null, playToken = 0;
+
+function openStory(st) {
+  story = st; idx = 0; scene = null; playToken++;
+  show('theatre');
+  $('actor').style.bottom = ''; $('actor').style.fontSize = '';
+  $('stage').classList.remove('open');
+  renderLanterns();
+  setBackdrop(st.scenes[0].bg);
+  $('actor').textContent = ''; $('cast').innerHTML = ''; $('targets').innerHTML = ''; $('reps').innerHTML = '';
+  $('bubble').classList.remove('show');
+  $('say').textContent = st.title; $('ask').textContent = 'The show is about to begin…';
+  setCta('🎭 Open the curtain', async () => {
+    fxCtx();
+    setCta(null);
+    // Ask for the microphone on this first tap (needs a user gesture on phones).
+    if (prefs.ears) await earsOn();
+    $('stage').classList.add('open');
+    chime(true);
+    setTimeout(() => playScene(0), 900);
   });
-  if (m === 'solo') items = [{ word: cur.solo, emo: cur.emo, hint: cur.soloText, speak: cur.speakSolo, plain: true }];
-  else if (m === 'syl') items = cur.syl.map(x => ({ word: x.toUpperCase(), emo: cur.emo, hint: 'Povedz slabiku', speak: x, syl: true }));
-  else items = cur[m].map(([w, e]) => ({ word: w, emo: e, hint: '', speak: w }));
-  renderItem();
 }
-function highlight(word, letter) {
-  // Highlight the target letter(s) in the word (case-insensitive).
-  const lower = letter.toLowerCase();
-  let out = '';
-  for (const ch of word) out += ch.toLowerCase() === lower ? `<b>${ch}</b>` : ch;
-  return out;
-}
-function renderItem() {
-  const it = items[idx];
-  $('pPic').textContent = it.emo;
-  $('pWord').innerHTML = it.plain ? `<b>${it.word}</b>` : highlight(it.word, cur.label);
-  $('pHint').textContent = it.hint || 'Pozri sa na obrázok a povedz, čo to je.';
-  const d = $('pDots'); d.innerHTML = '';
-  items.forEach((_, i) => d.appendChild(el('span', 'dot' + (i === idx ? ' on' : doneSet.has(i) ? ' done' : ''))));
-  $('pPrev').style.visibility = idx > 0 ? 'visible' : 'hidden';
-  $('pNext').style.visibility = idx < items.length - 1 ? 'visible' : 'hidden';
-  clearRecording();
-}
-function sayCurrent() { const it = items[idx]; wiggle($('pPic')); speak(it.plain ? it.speak : it.speak); }
-$('pListen').onclick = sayCurrent;
-$('pPic').onclick = sayCurrent;
-$('pPrev').onclick = () => { if (idx > 0) { idx--; renderItem(); } };
-$('pNext').onclick = () => { if (idx < items.length - 1) { idx++; renderItem(); } };
-$('pGood').onclick = (e) => {
-  addStar('sound-' + cur.id, e.currentTarget);
-  doneSet.add(idx);
-  setTimeout(() => {
-    if (idx < items.length - 1) { idx++; renderItem(); }
-    else {
-      renderItem();
-      // Move to the next exercise type when this one is finished.
-      const visible = [...document.querySelectorAll('#practiceTabs .tab')];
-      const pos = visible.findIndex(t => t.classList.contains('on'));
-      if (pos < visible.length - 1) {
-        toast('<span class="big">🏆</span>Hotovo! Ideme ďalej', 1500);
-        setTimeout(() => visible[pos + 1].click(), 1500);
-      } else {
-        toast('<span class="big">🏆</span>Celú hlásku ' + cur.label + ' máš hotovú!', 2500);
-        speak('Úžasné! Hlásku ' + cur.label + ' máš hotovú!');
-      }
-    }
-  }, 900);
-};
 
-/* Recording */
-let recorder = null, recChunks = [], recUrl = null, recAudio = null;
-function clearRecording() {
-  if (recUrl) URL.revokeObjectURL(recUrl);
-  recUrl = null;
-  $('pPlay').disabled = true;
-}
-$('pRec').onclick = async () => {
-  const btn = $('pRec');
-  if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
-  if (typeof MediaRecorder === 'undefined') { toast('Nahrávanie tu nefunguje 😕', 1500); return; }
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (e) { toast('Mikrofón nie je povolený 🎤', 1500); return; }
-  recChunks = [];
-  recorder = new MediaRecorder(micStream);
-  recorder.ondataavailable = ev => ev.data.size && recChunks.push(ev.data);
-  recorder.onstop = () => {
-    btn.classList.remove('on'); btn.textContent = '🎤';
-    if (micStream) micStream.getTracks().forEach(t => t.stop()), micStream = null;
-    if (!recChunks.length) return;
-    clearRecording();
-    recUrl = URL.createObjectURL(new Blob(recChunks, { type: recorder.mimeType || 'audio/webm' }));
-    $('pPlay').disabled = false;
-    playRecording();
-  };
-  recorder.start();
-  btn.classList.add('on'); btn.textContent = '⏹️';
-  // Auto-stop after 4 seconds so a child doesn't have to remember.
-  setTimeout(() => { if (recorder && recorder.state === 'recording') recorder.stop(); }, 4000);
-};
-function playRecording() {
-  if (!recUrl) return;
-  if (recAudio) recAudio.pause();
-  recAudio = new Audio(recUrl);
-  recAudio.play().catch(() => {});
-}
-$('pPlay').onclick = playRecording;
-
-/* --- Album --- */
-screens.album = () => {
-  const got = Math.min(STICKERS.length, Math.floor(state.stars / STARS_PER_STICKER));
-  const toNext = STARS_PER_STICKER - (state.stars % STARS_PER_STICKER);
-  $('albumInfo').innerHTML = got >= STICKERS.length
-    ? 'Máš všetky nálepky! 🏆'
-    : `Máš <b>${got}</b> ${got === 1 ? 'nálepku' : got >= 2 && got <= 4 ? 'nálepky' : 'nálepiek'}. Ešte <b>${toNext}</b> ⭐ do ďalšej!`;
-  const g = $('albumGrid'); g.innerHTML = '';
-  STICKERS.forEach((s, i) => g.appendChild(el('div', 'sticker' + (i < got ? '' : ' locked'), i < got ? s : '❔')));
-};
-
-/* --- Parent --- */
-screens.parent = () => {
-  const c = $('parentSounds'); c.innerHTML = '';
-  SOUNDS.forEach(s => {
-    const lab = el('label', 'chip');
-    const cb = el('input'); cb.type = 'checkbox'; cb.checked = state.enabled.includes(s.id);
-    cb.onchange = () => {
-      state.enabled = cb.checked ? [...new Set([...state.enabled, s.id])] : state.enabled.filter(x => x !== s.id);
-      saveState();
-    };
-    lab.appendChild(cb); lab.appendChild(document.createTextNode(s.label));
-    c.appendChild(lab);
+function renderLanterns() {
+  const l = $('lanterns'); l.innerHTML = '';
+  story.scenes.forEach((_, i) => {
+    const s = document.createElement('span');
+    s.className = 'lantern' + (i < idx ? ' lit' : i === idx ? ' now' : '');
+    l.appendChild(s);
   });
-  $('optSlow').checked = state.slow;
+}
 
-  const days = Object.keys(state.log).sort().reverse().slice(0, 7);
-  const nameOf = k => k === 'gym' ? 'rozcvička' : k === 'blow' ? 'fúkanie' : 'hláska ' + k.replace('sound-', '');
-  $('parentStats').innerHTML = `Spolu hviezdičiek: <b>${state.stars}</b><br>` + (days.length
-    ? '<ul>' + days.map(d => {
-        const parts = Object.entries(state.log[d]).map(([k, v]) => `${nameOf(k)}: ${v}`).join(', ');
-        return `<li><b>${d.split('-').reverse().join('.')}</b> – ${parts}</li>`;
-      }).join('') + '</ul>'
-    : '<span class="muted">Zatiaľ žiadne cvičenie.</span>');
+function setBackdrop(name) {
+  const bd = BACKDROPS[name];
+  $('backdrop').style.background = bd.bg;
+  const d = $('decos'); d.innerHTML = '';
+  bd.deco.forEach(([e, x, y, size, op]) => {
+    const s = document.createElement('span');
+    s.className = 'deco'; s.textContent = e;
+    s.style.cssText = `left:${x}%;top:${y}%;font-size:${size}px;opacity:${op}`;
+    d.appendChild(s);
+  });
+}
 
+function setActor(emoji) {
+  const a = $('actor');
+  a.textContent = emoji || '';
+  a.className = 'actor';
+  void a.offsetWidth;
+  if (emoji) a.className = 'actor enter';
+  setTimeout(() => { if (a.textContent === emoji) a.className = 'actor idle'; }, 750);
+}
+function hop() { const a = $('actor'); a.className = 'actor'; void a.offsetWidth; a.className = 'actor hop'; setTimeout(() => a.className = 'actor idle', 560); }
+function bubble(text, ms) {
+  const b = $('bubble'); b.textContent = text; b.classList.add('show');
+  clearTimeout(bubble.t); bubble.t = setTimeout(() => b.classList.remove('show'), ms || 1400);
+}
+function setText(say, ask) { $('say').textContent = say || ''; $('ask').textContent = ask || ''; }
+function setCta(label, fn, pulse) {
+  const c = $('cta');
+  ctaAction = fn;
+  c.style.visibility = label ? 'visible' : 'hidden';
+  if (label) c.textContent = label;
+  c.classList.toggle('pulse', !!pulse);
+}
+$('cta').onclick = () => { const f = ctaAction; if (f) f(); };
+
+function playScene(i) {
+  const token = ++playToken;
+  idx = i; scene = story.scenes[i]; progress = 0; phase = 'intro';
+  stopListening();
+  renderLanterns();
+  setBackdrop(scene.bg);
+  $('targets').innerHTML = ''; $('reps').innerHTML = ''; $('cast').innerHTML = '';
+  $('bubble').classList.remove('show');
+  setText(scene.say, scene.ask);
+
+  if (scene.type === 'finale') return playFinale(token);
+
+  setActor(scene.actor);
+  if (scene.type === 'sound') {
+    const r = $('reps');
+    for (let k = 0; k < (scene.reps || 3); k++) { const s = document.createElement('span'); s.textContent = '⭐'; r.appendChild(s); }
+    setTimeout(() => token === playToken && bubble(scene.sound, 2200), 900);
+  }
+  if (scene.type === 'tap' || scene.type === 'blow') placeTargets();
+
+  setCta(null);
+  speak([scene.say, scene.ask], () => {
+    if (token !== playToken) return;
+    phase = 'play';
+    if (scene.type === 'tell') return setCta('Next ▶', next, true);
+    if (scene.type === 'sound') { listen('voice', perform); setCta('⭐ I did it!', perform); }
+    if (scene.type === 'tap') setCta(null);
+    if (scene.type === 'blow') { listen('blow', clearOne); setCta('💨 I blew!', clearOne); }
+  });
+  // Let children start playing even while the storyteller is talking.
+  if (scene.type === 'tap') phase = 'play';
+}
+
+function placeTargets() {
+  const t = $('targets');
+  const spots = TARGET_SPOTS.slice(0, scene.count);
+  spots.forEach(([x, y], k) => {
+    const el = document.createElement('button');
+    el.className = 'target'; el.textContent = scene.target;
+    el.style.left = x + '%'; el.style.top = y + '%';
+    el.style.animationDelay = (k * .3) + 's';
+    el.onclick = (e) => { if (phase === 'play') clearOne(e.currentTarget); };
+    t.appendChild(el);
+  });
+}
+
+function perform() {
+  if (phase !== 'play' || scene.type !== 'sound') return;
+  const reps = scene.reps || 3;
+  progress++;
+  hop(); bubble(scene.sound); chime(progress === reps);
+  [...$('reps').children].forEach((s, k) => s.classList.toggle('on', k < progress));
+  sparkle($('actor'));
+  if (progress >= reps) return sceneDone();
+  phase = 'pause';
+  speak(PRAISE[(progress - 1) % PRAISE.length], () => { if (phase === 'pause') phase = 'play'; });
+}
+
+function clearOne(el) {
+  if (phase !== 'play') return;
+  const left = [...document.querySelectorAll('.target:not(.gone)')];
+  if (!left.length) return;
+  const target = el instanceof Element && el.classList.contains('target') ? el : left[left.length - 1];
+  target.classList.add('gone');
+  sparkle(target);
+  hop();
+  const remaining = left.length - 1;
+  chime(remaining === 0);
+  if (remaining === 0) sceneDone();
+}
+
+function sceneDone() {
+  phase = 'done';
+  stopListening();
+  setCta(null);
+  const token = playToken;
+  setText(scene.done, '');
+  setTimeout(() => speak(scene.done, () => token === playToken && setCta('Next ▶', next, true)), 500);
+}
+
+function next() {
+  hush();
+  if (idx + 1 < story.scenes.length) playScene(idx + 1);
+}
+
+function playFinale(token) {
+  setActor(scene.prop || '');
+  $('actor').style.bottom = '48%';
+  $('actor').style.fontSize = '80px';
+  const cast = $('cast');
+  const seen = new Set();
+  story.scenes.forEach(s => { if (s.actor && !seen.has(s.actor)) { seen.add(s.actor); } });
+  [...seen].slice(-6).forEach((e, k) => {
+    const s = document.createElement('span'); s.textContent = e; s.style.animationDelay = (k * .15) + 's'; cast.appendChild(s);
+  });
+  setCta(null);
+  applause();
+  confetti();
+  setTimeout(() => speak([scene.say, scene.ask], () => {
+    if (token !== playToken) return;
+    setCta('🙇 Take a bow', () => {
+      prefs.stars[story.id] = (prefs.stars[story.id] || 0) + 1; save();
+      chime(true); confetti();
+      $('stage').classList.remove('open');
+      setText('The End', 'You earned a golden star! ⭐');
+      speak('The end. You earned a golden star!');
+      setCta('🏠 Back to stories', leaveTheatre, true);
+    }, true);
+  }), 1200);
+}
+
+function leaveTheatre() {
+  playToken++; hush(); earsOff();
+  $('actor').style.bottom = ''; $('actor').style.fontSize = '';
+  renderHome(); show('home');
+}
+$('exit').onclick = leaveTheatre;
+$('replay').onclick = () => {
+  if (!scene) return;
+  const parts = phase === 'done' ? [scene.done] : [scene.say, scene.ask];
+  const wasPlaying = phase === 'play';
+  if (wasPlaying) phase = 'pause';
+  speak(parts, () => { if (phase === 'pause') phase = 'play'; });
+};
+$('actor').onclick = () => {
+  if (!scene || scene.type !== 'sound') return;
+  // Tapping the character plays its sound as a model to copy.
+  hop(); bubble(scene.sound);
+  const back = phase;
+  if (phase === 'play') phase = 'pause';
+  speak(scene.model, () => { if (phase === 'pause' && back === 'play') phase = 'play'; });
+};
+
+/* ---------- Sparkles ---------- */
+function sparkle(el) {
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  for (let i = 0; i < 10; i++) spark(cx, cy, ['✨','⭐','💛','🌟'][i % 4], 70 + Math.random() * 90);
+}
+function confetti() {
+  for (let i = 0; i < 26; i++) spark(innerWidth / 2, innerHeight * .35, ['🎉','✨','⭐','🌸','💛','🎊'][i % 6], 120 + Math.random() * 220);
+}
+function spark(x, y, ch, dist) {
+  const s = document.createElement('div');
+  s.className = 'spark'; s.textContent = ch;
+  s.style.left = x + 'px'; s.style.top = y + 'px';
+  const a = Math.random() * Math.PI * 2;
+  s.style.setProperty('--dx', Math.cos(a) * dist + 'px');
+  s.style.setProperty('--dy', Math.sin(a) * dist + 'px');
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 1200);
+}
+
+/* =========================================================
+   GROWN-UPS
+   ========================================================= */
+function renderGrownups() {
+  $('optEars').checked = prefs.ears;
+  $('optSlow').checked = prefs.slow;
+  $('soundTable').innerHTML = STORIES.map(st =>
+    `<tr><td>${st.cover} <b>${st.title}</b></td><td>${st.scenes.filter(s => s.practises).map(s => s.practises).join(', ')}</td></tr>`).join('');
   pickVoice();
   $('voiceInfo').innerHTML = !('speechSynthesis' in window)
-    ? 'Tento prehliadač nevie čítať nahlas. Slová čítajte dieťaťu vy.'
-    : voice
-      ? `Používam hlas: <b>${voice.name}</b> (${voice.lang}).`
-      : 'Slovenský hlas sa nenašiel. Výslovnosť môže byť nesprávna. Na iPhone/iPade: Nastavenia → Prístupnosť → Hovorený obsah → Hlasy → Slovenčina. Na Androide: Nastavenia → Prevod textu na reč → Google → nainštalovať slovenčinu.';
-};
-$('optSlow').onchange = e => { state.slow = e.target.checked; saveState(); };
-$('testVoice').onclick = () => speak('Ahoj! Ja som líška Hovorílko. Poďme sa spolu hrať.');
-$('resetAll').onclick = () => {
-  if (!confirm('Naozaj vymazať všetky hviezdičky, nálepky a prehľad?')) return;
-  state.stars = 0; state.log = {}; saveState(); screens.parent(); updateStars();
-};
+    ? 'This browser cannot read aloud. Please read the story to your child.'
+    : voice ? `Storyteller voice: <b>${voice.name}</b>` : 'No English voice found on this device.';
+}
+$('openGrownups').onclick = () => { renderGrownups(); show('grownups'); };
+$('guBack').onclick = () => { renderHome(); show('home'); };
+$('optEars').onchange = e => { prefs.ears = e.target.checked; save(); };
+$('optSlow').onchange = e => { prefs.slow = e.target.checked; save(); };
+$('testVoice').onclick = () => speak('Once upon a time, there was a little theatre in the forest.');
+$('reset').onclick = () => { if (confirm('Clear all stars?')) { prefs.stars = {}; save(); } };
 
-/* ===================== START ===================== */
-updateStars();
-document.querySelector('.mascot').onclick = () => speak('Ahoj! Ja som líška Hovorílko. Vyber si hru!');
+renderHome();
 </script>
 </body>
 </html>
