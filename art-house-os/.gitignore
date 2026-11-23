@@ -1,0 +1,9 @@
+.env
+data/audit.log
+designs/*/source/
+designs/*/master.*
+designs/*/print/
+designs/*/mockups/
+brand/mockups/*.png
+brand/mockups/*.jpg
+__pycache__/
